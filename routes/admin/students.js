@@ -15,24 +15,24 @@ function deleteStudent(id) {
 function getStudents() {
   return new Promise(async (resolve, reject) => {
     try {
-      let students = await db("students")
-        .select("accounts.first_name", "accounts.last_name", "students.*")
-        .innerJoin("accounts", "students.account_id", "accounts.id");
-      if (students) {
-        const cohort_options = await db("cohorts").select(
-          "id as cohort_id",
-          "cohort_name"
-        );
-        const mergedFields = students.map(student => ({
-          ...student,
-          cohort_options
-        }));
-        resolve(mergedFields);
-      } else {
-        reject();
-      }
+      let students = await db("students as s")
+        .select(
+          "a.first_name",
+          "a.last_name",
+          "s.graduated",
+          "s.hired",
+          "s.approved",
+          "t.name",
+          "c.cohort_name"
+        )
+        .innerJoin("accounts as a", "s.account_id", "a.id")
+        .leftOuterJoin("tracks as t", "t.id", "s.track_id")
+        .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id");
+
+      resolve(students);
     } catch (error) {
-      reject();
+      console.log(error);
+      reject(error);
     }
   });
 }
@@ -40,23 +40,14 @@ function getStudents() {
 function updateStudent(id, info) {
   return new Promise(async (resolve, reject) => {
     try {
-      const count = await db("students")
+      const res = await db("students")
         .where({ id })
-        .update(info);
+        .update(info, "*");
 
-      if (count) {
-        resolve(
-          db("students")
-            .select("accounts.first_name", "accounts.last_name", "students.*")
-            .innerJoin("accounts", "students.account_id", "accounts.id")
-            .where({ "students.id": id })
-            .first()
-        );
-      } else {
-        reject();
-      }
+      resolve(res);
     } catch (error) {
-      reject();
+      console.log(error);
+      reject(error);
     }
   });
 }
