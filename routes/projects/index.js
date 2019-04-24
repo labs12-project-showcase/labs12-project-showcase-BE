@@ -33,14 +33,12 @@ router
     const { id } = req.params;
 
     try {
-      const project = actions.getProjectById(id);
+      const project = await actions.getProjectById(id);
       res.status(200).json(project);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: `Error retrieving the project with the ID of ${id}.`
-        });
+      res.status(500).json({
+        message: `Error retrieving the project with the ID of ${id}.`
+      });
     }
   })
   .put(restricted(), async (req, res) => {
@@ -50,10 +48,8 @@ router
       const project = await actions.updateProject(id, info);
       res.status(200).json(project);
     } catch (error) {
-      res
-        .status(500)
-        .json({
-          message: `There was an error updating the project with ID ${id}.`
-        });
+      res.status(500).json({
+        message: `There was an error updating the project with ID ${id}.`
+      });
     }
   });
