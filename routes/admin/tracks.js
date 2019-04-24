@@ -1,16 +1,16 @@
 const db = require("../../data/config");
 
 module.exports = {
-  addCohort,
-  deleteCohort,
-  getCohorts,
-  updateCohort
+  addTrack,
+  deleteTrack,
+  getTracks,
+  updateTrack
 };
 
-function addCohort(info) {
+function addTrack(info) {
   return new Promise(async (resolve, reject) => {
     try {
-      const [res] = await db("cohorts").insert(info, "*");
+      const [res] = await db("tracks").insert(info, "*");
       resolve(res);
     } catch (error) {
       reject(error);
@@ -18,20 +18,20 @@ function addCohort(info) {
   });
 }
 
-function deleteCohort(id) {
-  return db("cohorts")
+function deleteTrack(id) {
+  return db("tracks")
     .where({ id })
     .del();
 }
 
-function getCohorts() {
-  return db("cohorts");
+function getTracks() {
+  return db("tracks");
 }
 
-function updateCohort(id, info) {
+function updateTrack(id, info) {
   return new Promise(async (resolve, reject) => {
     try {
-      const [res] = await db("cohorts")
+      const [res] = await db("tracks")
         .where({ id })
         .update(info, "*");
       resolve(res);
