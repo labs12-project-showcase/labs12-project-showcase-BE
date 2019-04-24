@@ -25,26 +25,7 @@ function deleteCohort(id) {
 }
 
 function getCohorts() {
-  return new Promise(async (resolve, reject) => {
-    let cohorts, type_options, mergedFields;
-    await db.transaction(async t => {
-      try {
-        cohorts = await db("cohorts").transacting(t);
-        type_options = await db("cohort_types")
-          .select("id as cohort_type_id", "type")
-          .transacting(t);
-
-        mergedFields = cohorts.map(cohort => ({
-          ...cohort,
-          type_options
-        }));
-
-        resolve(mergedFields);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  });
+  return db("cohorts");
 }
 
 function updateCohort(id, info) {
