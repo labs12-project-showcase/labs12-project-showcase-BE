@@ -10,14 +10,7 @@ module.exports = {
 
 function getStudentById(id) {
   return new Promise(async (resolve, reject) => {
-    let student,
-      skills,
-      hobbies,
-      endorsements,
-      top_skills,
-      desired_locations,
-      top_projects,
-      projects;
+    let student, endorsements, top_projects, projects;
     try {
       await db.transaction(async t => {
         student = await db("students as s")
@@ -26,11 +19,26 @@ function getStudentById(id) {
             "a.last_name",
             "s.*",
             "c.cohort_name",
-            "t.name as track"
+            "t.name as track",
+            db.raw("array_agg(distinct sk.skill) as skills"),
+            db.raw("array_agg(distinct h.hobby) as hobbies"),
+            db.raw("array_agg(distinct ts.skill) as top_skills"),
+            db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
           .leftOuterJoin("tracks as t", "t.id", "s.track_id")
+          .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
+          .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
+          .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
+          .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
+          .groupBy(
+            "a.first_name",
+            "a.last_name",
+            "s.id",
+            "c.cohort_name",
+            "t.name"
+          )
           .where({ "s.id": id })
           .first()
           .transacting(t);
@@ -97,11 +105,7 @@ function getStudentById(id) {
     }
     resolve({
       ...student,
-      top_skills,
-      skills,
-      hobbies,
       endorsements,
-      desired_locations,
       top_projects,
       projects
     });
@@ -112,32 +116,29 @@ function getStudentCards() {
   return new Promise(async (resolve, reject) => {
     let students;
     try {
-      await db.transaction(async t => {
-        students = await db("accounts as a")
-          .select(
-            "a.first_name",
-            "a.last_name",
-            "s.linkedin",
-            "s.github",
-            "s.twitter",
-            "s.profile_pic",
-            "t.name as track",
-            db.raw("array_agg(ts.skill) as top_skills")
-          )
-          .innerJoin("students as s", "s.account_id", "a.id")
-          .leftOuterJoin("tracks as t", "s.track_id", "t.id")
-          .leftOuterJoin("top_skills as ts", "s.id", "ts.student_id")
-          .groupBy(
-            "a.first_name",
-            "a.last_name",
-            "s.linkedin",
-            "s.github",
-            "s.twitter",
-            "s.profile_pic",
-            "t.name"
-          )
-          .transacting(t);
-      });
+      students = await db("accounts as a")
+        .select(
+          "a.first_name",
+          "a.last_name",
+          "s.linkedin",
+          "s.github",
+          "s.twitter",
+          "s.profile_pic",
+          "t.name as track",
+          db.raw("array_agg(ts.skill) as top_skills")
+        )
+        .innerJoin("students as s", "s.account_id", "a.id")
+        .leftOuterJoin("tracks as t", "s.track_id", "t.id")
+        .leftOuterJoin("top_skills as ts", "s.id", "ts.student_id")
+        .groupBy(
+          "a.first_name",
+          "a.last_name",
+          "s.linkedin",
+          "s.github",
+          "s.twitter",
+          "s.profile_pic",
+          "t.name"
+        );
     } catch (error) {
       console.log(error);
       reject(error);
@@ -149,11 +150,7 @@ function getStudentCards() {
 function getStudentProfile(account_id, update) {
   return new Promise(async (resolve, reject) => {
     let student,
-      skills,
-      hobbies,
       endorsements,
-      top_skills,
-      desired_locations,
       top_projects,
       projects,
       cohort_options,
@@ -166,23 +163,28 @@ function getStudentProfile(account_id, update) {
             "a.last_name",
             "s.*",
             "c.cohort_name",
-            "t.name as track"
+            "t.name as track",
+            db.raw("array_agg(distinct sk.skill) as skills"),
+            db.raw("array_agg(distinct h.hobby) as hobbies"),
+            db.raw("array_agg(distinct ts.skill) as top_skills"),
+            db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
           .leftOuterJoin("tracks as t", "t.id", "s.track_id")
+          .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
+          .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
+          .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
+          .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
+          .groupBy(
+            "a.first_name",
+            "a.last_name",
+            "s.id",
+            "c.cohort_name",
+            "t.name"
+          )
           .where({ "s.account_id": account_id })
           .first()
-          .transacting(t);
-
-        skills = await db("student_skills as s")
-          .select("s.skill")
-          .where({ student_id: student.id })
-          .transacting(t);
-
-        hobbies = await db("hobbies as h")
-          .select("h.hobby")
-          .where({ student_id: student.id })
           .transacting(t);
 
         endorsements = await db("endorsements as e")
@@ -190,16 +192,6 @@ function getStudentProfile(account_id, update) {
           .join("students as s", "s.id", "e.from_id")
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "e.to_id": student.id })
-          .transacting(t);
-
-        top_skills = await db("top_skills as ts")
-          .select("ts.skill")
-          .where({ student_id: student.id })
-          .transacting(t);
-
-        desired_locations = await db("desired_locations as dl")
-          .select("dl.location")
-          .where({ student_id: student.id })
           .transacting(t);
 
         top_projects = await db("top_projects as t")
@@ -243,15 +235,12 @@ function getStudentProfile(account_id, update) {
         }
       });
     } catch (error) {
+      console.log(error);
       reject(error);
     }
     resolve({
       ...student,
-      top_skills,
-      skills,
-      hobbies,
       endorsements,
-      desired_locations,
       top_projects,
       projects,
       track_options,
@@ -267,13 +256,120 @@ function getStudentProfile(account_id, update) {
 //   );
 // }
 
-function updateStudent(account_id, info, skills) {
+function updateStudent(account_id, info) {
   return new Promise(async (resolve, reject) => {
-    let student, newSkills;
+    /* 
+      Info {
+        student {
+
+        }
+        hobbies [
+
+        ]
+        top_skills [
+
+        ]
+        skills [
+
+        ]
+        desired_locations [
+
+        ]
+      }
+    */
+    //Initialize return value
+    let updated;
     try {
-      await db.transaction(async t => {});
+      await db.transaction(async t => {
+        //Update students table if data exists and fetch the correct student_id
+        let student;
+        if (info.student) {
+          [student] = await db("students")
+            .update(info.student, "*")
+            .where({ account_id })
+            .transacting(t);
+        } else {
+          student = await db("students")
+            .select("id")
+            .where({ account_id })
+            .first();
+        }
+
+        //Delete and then insert hobbies if data exsists
+        let hobbies;
+        if (info.hobbies) {
+          info.hobbies = info.hobbies.map(hobby => ({
+            student_id: student.id,
+            hobby
+          }));
+          await db("hobbies")
+            .where({ student_id: student.id })
+            .del()
+            .transacting(t);
+          hobbies = await db("hobbies")
+            .insert(info.hobbies, "hobby")
+            .transacting(t);
+        }
+
+        //Delete and then insert top_skills if data exsists
+        let top_skills;
+        if (info.top_skills) {
+          info.top_skills = info.top_skills.map(skill => ({
+            student_id: student.id,
+            skill
+          }));
+          await db("top_skills")
+            .where({ student_id: student.id })
+            .del()
+            .transacting(t);
+          top_skills = await db("top_skills")
+            .insert(info.top_skills, "skill")
+            .transacting(t);
+        }
+
+        //Delete and then insert skills if data exsists
+        let skills;
+        if (info.skills) {
+          info.skills = info.skills.map(skill => ({
+            student_id: student.id,
+            skill
+          }));
+          await db("student_skills")
+            .where({ student_id: student.id })
+            .del()
+            .transacting(t);
+          skills = await db("student_skills")
+            .insert(info.skills, "skill")
+            .transacting(t);
+        }
+
+        //Delete and then insert desired locations if data exsists
+        let desired_locations;
+        if (info.desired_locations) {
+          info.desired_locations = info.desired_locations.map(location => ({
+            student_id: student.id,
+            location
+          }));
+          await db("desired_locations")
+            .where({ student_id: student.id })
+            .del()
+            .transacting(t);
+          desired_locations = await db("desired_locations")
+            .insert(info.desired_locations, "location")
+            .transacting(t);
+        }
+
+        updated = {
+          ...student,
+          hobbies,
+          top_skills,
+          skills,
+          desired_locations
+        };
+      });
       resolve(updated);
     } catch (error) {
+      console.log(error);
       reject(error);
     }
   });
