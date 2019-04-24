@@ -43,31 +43,11 @@ function getStudentById(id) {
           .first()
           .transacting(t);
 
-        skills = await db("student_skills as s")
-          .select("s.skill")
-          .where({ student_id: id })
-          .transacting(t);
-
-        hobbies = await db("hobbies as h")
-          .select("h.hobby")
-          .where({ student_id: id })
-          .transacting(t);
-
         endorsements = await db("endorsements as e")
           .select("e.message", "a.first_name", "a.last_name")
           .join("students as s", "s.id", "e.from_id")
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "e.to_id": id })
-          .transacting(t);
-
-        top_skills = await db("top_skills as ts")
-          .select("ts.skill")
-          .where({ student_id: id })
-          .transacting(t);
-
-        desired_locations = await db("desired_locations as dl")
-          .select("dl.location")
-          .where({ student_id: id })
           .transacting(t);
 
         top_projects = await db("top_projects as t")

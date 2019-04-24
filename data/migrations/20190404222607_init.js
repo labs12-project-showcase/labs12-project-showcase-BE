@@ -155,6 +155,11 @@ exports.up = function(knex, Promise) {
       tbl.string("tech_pitch");
       tbl.string("customer_pitch");
       tbl.string("medium");
+      tbl.string("fe_link");
+      tbl.string("be_link");
+      tbl.string("mobile_link");
+      tbl.string("market_link");
+      tbl.string("design_link");
       tbl.boolean("approved").defaultTo(false);
     })
 
