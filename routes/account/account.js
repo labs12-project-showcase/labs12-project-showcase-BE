@@ -12,13 +12,7 @@ function deleteAccount(id) {
 
 function getAccount(id) {
   return db("accounts")
-    .select(
-      "accounts.email",
-      "accounts.first_name",
-      "accounts.last_name",
-      "accounts.verified_student",
-      "roles.role"
-    )
+    .select("accounts.first_name", "accounts.last_name", "roles.role")
     .where({ "accounts.id": id })
     .innerJoin("roles", "roles.id", "accounts.role_id")
     .first();
@@ -27,30 +21,23 @@ function getAccount(id) {
 function updateAccount(id, info) {
   return new Promise(async (resolve, reject) => {
     let account;
-    await db.transaction(async t => {
-      try {
+    try {
+      await db.transaction(async t => {
         await db("accounts")
           .where({ id })
           .update(info)
           .transacting(t);
 
         account = await db("accounts")
-          .select(
-            "accounts.email",
-            "accounts.first_name",
-            "accounts.last_name",
-            "accounts.verified_student",
-            "roles.role"
-          )
+          .select("accounts.first_name", "accounts.last_name", "roles.role")
           .where({ "accounts.id": id })
           .innerJoin("roles", "roles.id", "accounts.role_id")
           .first()
           .transacting(t);
-      } catch (error) {
-        t.rollback();
-        reject(error);
-      }
-    });
-    resolve(account);
+      });
+      resolve(account);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
