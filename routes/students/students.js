@@ -9,23 +9,25 @@ module.exports = {
   updateStudent
 };
 
-function endorseStudent(account_id, id, message) {
+function endorseStudent(account_id, to_id, message) {
   return new Promise(async (resolve, reject) => {
     let result;
     try {
       await db.transaction(async t => {
-        const to_id = await db("students as s")
-          .select("a.account_id")
+        const fromId = await db("students as s")
+          .select("s.id")
           .join("accounts as a", "a.id", "s.account_id")
-          .where({ "s.id": id })
+          .where({ "a.id": account_id })
           .first()
           .transacting(t);
 
         const endorsement = {
           message,
           to_id,
-          from_id: account_id
+          from_id: fromId.id
         };
+
+        console.log(endorsement);
 
         [result] = await db("endorsements")
           .insert(endorsement, "*")

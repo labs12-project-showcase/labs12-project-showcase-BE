@@ -17,7 +17,7 @@ router.route("/cards").get(async (req, res) => {
   }
 });
 
-route.route("/endorse/:id").post(async (req, res) => {
+router.route("/endorse/:id").post(restricted(), async (req, res) => {
   const { id } = req.params;
   const { message } = req.body;
   const account_id = req.token.subject;
