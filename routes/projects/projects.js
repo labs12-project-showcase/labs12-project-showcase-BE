@@ -3,7 +3,6 @@ const db = require("../../data/config");
 module.exports = {
   createProject,
   getProjectCards,
-  getUserProjectCards,
   getProjectById,
   updateProject
 };
@@ -61,8 +60,6 @@ function getProjectCards() {
   });
 }
 
-function getUserProjectCards(id) {}
-
 function getProjectById(id) {
   return new Promise(async (resolve, reject) => {
     let project, students;
@@ -105,7 +102,7 @@ function updateProject(id, info) {
         }
         Media [
 
-        ] OR ' '
+        ]
         Skills [
 
         ]
