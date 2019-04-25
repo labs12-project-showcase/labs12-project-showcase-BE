@@ -18,8 +18,10 @@ exports.up = function(knex, Promise) {
         .notNullable()
         .onDelete("RESTRICT")
         .onUpdate("CASCADE");
-      tbl.string("first_name").notNullable();
-      tbl.string("last_name").notNullable();
+      tbl.string("first_name");
+      tbl.string("last_name");
+      tbl.string("email").notNullable();
+      tbl.string("sub_id").notNullable();
     })
 
     .createTable("tracks", tbl => {
