@@ -6,6 +6,7 @@ const generateToken = require("../../auth/token-handlers").generateToken;
 router.route("/").post(async (req, res) => {
   const info = req.body;
   console.log("INFO IN REQ", info);
+  console.log("database url", process.env.DATABASE_URL);
   try {
     const user = await actions.findUser(info.sub_id);
     if (user) {
