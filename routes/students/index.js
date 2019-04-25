@@ -79,7 +79,9 @@ router
     try {
       if (req.file && req.file.url) {
         const updated = await actions.updateStudent(account_id, {
-          profile_pic: req.file.url
+          student: {
+            profile_pic: req.file.url
+          }
         });
         res.status(200).json(updated);
       } else {

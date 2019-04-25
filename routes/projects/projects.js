@@ -130,6 +130,7 @@ function updateProject(id, info) {
             project_id: id,
             media: link
           }));
+          console.log(info.media);
           await db("project_media")
             .where({ project_id: id })
             .del()
