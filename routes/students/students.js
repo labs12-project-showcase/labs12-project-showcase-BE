@@ -50,35 +50,21 @@ function getStudentById(id) {
           .where({ "e.to_id": id })
           .transacting(t);
 
-        top_projects = await db("top_projects as t")
-          .select(
-            "p.id",
-            "p.name",
-            "p.github",
-            "pm.media",
-            db.raw("array_agg(ps.skill) as skills")
-          )
-          .join("projects as p", "p.id", "t.project_id")
+        top_projects = await db("top_projects as tp")
+          .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
+          .join("projects as p", "p.id", "tp.project_id")
           .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
-          .leftOuterJoin("project_skills as ps", "ps.project_id", "p.id")
-          .where({ "t.student_id": id, "p.approved": true })
-          .groupBy("p.name", "p.github", "pm.media", "p.id")
+          .where({ "tp.student_id": id })
+          .groupBy("p.id")
           .transacting(t);
 
         projects = await db("student_projects as sp")
-          .select(
-            "p.id",
-            "p.name",
-            "p.github",
-            "pm.media",
-            db.raw("array_agg(ps.skill) as skills")
-          )
+          .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
           .join("projects as p", "p.id", "sp.project_id")
           .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
-          .leftOuterJoin("project_skills as ps", "ps.project_id", "p.id")
-          .where({ "sp.student_id": id, approved: true })
-          .groupBy("p.name", "p.github", "pm.media", "p.id")
-          .transacting(t);
+          .where({ "sp.student_id": id })
+          .transacting(t)
+          .groupBy("p.id");
       });
     } catch (error) {
       reject(error);
@@ -174,35 +160,21 @@ function getStudentProfile(account_id, update) {
           .where({ "e.to_id": student.id })
           .transacting(t);
 
-        top_projects = await db("top_projects as t")
-          .select(
-            "p.id",
-            "p.name",
-            "p.github",
-            "pm.media",
-            db.raw("array_agg(ps.skill) as skills")
-          )
-          .join("projects as p", "p.id", "t.project_id")
+        top_projects = await db("top_projects as tp")
+          .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
+          .join("projects as p", "p.id", "tp.project_id")
           .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
-          .leftOuterJoin("project_skills as ps", "ps.project_id", "p.id")
-          .where({ "t.student_id": student.id, "p.approved": true })
-          .groupBy("p.name", "p.github", "pm.media", "p.id")
+          .where({ "tp.student_id": student.id })
+          .groupBy("p.id")
           .transacting(t);
 
         projects = await db("student_projects as sp")
-          .select(
-            "p.id",
-            "p.name",
-            "p.github",
-            "pm.media",
-            db.raw("array_agg(ps.skill) as skills")
-          )
+          .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
           .join("projects as p", "p.id", "sp.project_id")
           .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
-          .leftOuterJoin("project_skills as ps", "ps.project_id", "p.id")
-          .where({ "sp.student_id": student.id, approved: true })
-          .groupBy("p.name", "p.github", "pm.media", "p.id")
-          .transacting(t);
+          .where({ "sp.student_id": student.id })
+          .transacting(t)
+          .groupBy("p.id");
 
         if (update === "true") {
           cohort_options = await db("cohorts as c")

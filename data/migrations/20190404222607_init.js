@@ -18,8 +18,10 @@ exports.up = function(knex, Promise) {
         .notNullable()
         .onDelete("RESTRICT")
         .onUpdate("CASCADE");
-      tbl.string("first_name").notNullable();
-      tbl.string("last_name").notNullable();
+      tbl.string("first_name");
+      tbl.string("last_name");
+      tbl.string("email").notNullable();
+      tbl.string("sub_id").notNullable();
     })
 
     .createTable("tracks", tbl => {
@@ -61,13 +63,12 @@ exports.up = function(knex, Promise) {
         .onUpdate("CASCADE");
       tbl.string("profile_pic").unique();
       tbl.string("location");
-      tbl.string("resume");
       tbl.text("about", 500);
       tbl.boolean("approved").defaultTo(false);
       tbl.boolean("hired").defaultTo(false);
       tbl.boolean("graduated").defaultTo(false);
       tbl.string("website");
-      tbl.string("github");
+      tbl.string("github").unique();
       tbl.string("linkedin");
       tbl.string("twitter");
       tbl.string("acclaim");

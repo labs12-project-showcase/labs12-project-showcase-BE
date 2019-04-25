@@ -53,3 +53,24 @@ router
       });
     }
   });
+
+router
+  .route("/:id/media")
+  .put(restricted(), cloudParser.array("images", 3), async (req, res) => {
+    const { id } = req.params;
+    try {
+      if (req.files) {
+        const info = {
+          media: req.files.map(file => file.url)
+        };
+        const updated = await actions.updateProject(id, info);
+        res.status(200).json(updated);
+      } else {
+        res.status(400).json({ message: "Please provide an image to upload." });
+      }
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Something went wrong uploading the picture." });
+    }
+  });

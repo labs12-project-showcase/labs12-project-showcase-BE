@@ -1,6 +1,5 @@
-const bcrypt = require("bcryptjs");
 const email = process.env.INITIAL_ADMIN_EMAIL;
-const password = bcrypt.hashSync(process.env.INITIAL_ADMIN_PASSWORD, 8);
+const password = process.env.INITIAL_ADMIN_PASSWORD;
 
 exports.seed = function(knex, Promise) {
   return knex("accounts").insert([
