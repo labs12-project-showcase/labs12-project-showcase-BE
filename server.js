@@ -7,7 +7,6 @@ const restricted = require("./middleware/restricted");
 const accountsRouter = require("./routes/account");
 const adminRouter = require("./routes/admin");
 const loginRouter = require("./routes/login");
-const registerRouter = require("./routes/register");
 const studentsRouter = require("./routes/students");
 const projectsRouter = require("./routes/projects");
 
@@ -19,7 +18,6 @@ server.use(middleware);
 
 //Routes Middleware
 server.use("/api/auth/login", loginRouter);
-server.use("/api/auth/register", registerRouter);
 server.use("/api/students", studentsRouter);
 server.use("/api/projects", projectsRouter);
 server.use("/api/accounts", restricted(), accountsRouter);
