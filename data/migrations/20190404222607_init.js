@@ -67,7 +67,7 @@ exports.up = function(knex, Promise) {
       tbl.boolean("hired").defaultTo(false);
       tbl.boolean("graduated").defaultTo(false);
       tbl.string("website");
-      tbl.string("github");
+      tbl.string("github").unique();
       tbl.string("linkedin");
       tbl.string("twitter");
       tbl.string("acclaim");
