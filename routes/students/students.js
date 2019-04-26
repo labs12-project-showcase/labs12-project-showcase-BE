@@ -1,12 +1,43 @@
 const db = require("../../data/config");
 
 module.exports = {
+  endorseStudent,
   getStudentById,
   getStudentCards,
   // getStudentLocations,
   getStudentProfile,
   updateStudent
 };
+
+function endorseStudent(account_id, to_id, message) {
+  return new Promise(async (resolve, reject) => {
+    let result;
+    try {
+      await db.transaction(async t => {
+        const fromId = await db("students as s")
+          .select("s.id")
+          .join("accounts as a", "a.id", "s.account_id")
+          .where({ "a.id": account_id })
+          .first()
+          .transacting(t);
+
+        const endorsement = {
+          message,
+          to_id,
+          from_id: fromId.id
+        };
+
+        [result] = await db("endorsements")
+          .insert(endorsement, "*")
+          .transacting(t);
+      });
+      resolve(result);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
 
 function getStudentById(id) {
   return new Promise(async (resolve, reject) => {

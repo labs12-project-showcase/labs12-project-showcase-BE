@@ -17,6 +17,20 @@ router.route("/cards").get(async (req, res) => {
   }
 });
 
+router.route("/endorse/:id").post(restricted(), async (req, res) => {
+  const { id } = req.params;
+  const { message } = req.body;
+  const account_id = req.token.subject;
+  try {
+    const endorsement = await actions.endorseStudent(account_id, id, message);
+    res.status(201).json(endorsement);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Something went wrong endorsing the student." });
+  }
+});
+
 router.route("/profile").get(restricted(), async (req, res) => {
   const account_id = req.token.subject;
   const { update } = req.query;
