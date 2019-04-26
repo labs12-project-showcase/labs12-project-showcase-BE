@@ -62,6 +62,8 @@ exports.up = function(knex, Promise) {
         .onUpdate("CASCADE");
       tbl.string("profile_pic").unique();
       tbl.string("location");
+      tbl.string("lat");
+      tbl.string("lon");
       tbl.string("desired_title");
       tbl.text("about", 500);
       tbl.boolean("approved").defaultTo(false);
