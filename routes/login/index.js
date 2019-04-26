@@ -12,8 +12,10 @@ router.route("/").post(async (req, res) => {
       res.status(200).json(token);
     } else {
       const newUser = await actions.registerUser(info);
+      const acccess_token = await actions.getAPIToken();
+      const userInfo = await actions.getUserInfo(acccess_token, info.sub_id);
       const token = generateToken(newUser);
-      res.status(201).json(token);
+      res.status(201).json({ token, userInfo });
     }
   } catch (err) {
     console.log("ERROR", err);

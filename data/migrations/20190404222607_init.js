@@ -18,8 +18,7 @@ exports.up = function(knex, Promise) {
         .notNullable()
         .onDelete("RESTRICT")
         .onUpdate("CASCADE");
-      tbl.string("first_name");
-      tbl.string("last_name");
+      tbl.string("name");
       tbl.string("email").notNullable();
       tbl.string("sub_id").notNullable();
     })
@@ -63,6 +62,8 @@ exports.up = function(knex, Promise) {
         .onUpdate("CASCADE");
       tbl.string("profile_pic").unique();
       tbl.string("location");
+      tbl.string("lat");
+      tbl.string("lon");
       tbl.string("desired_title");
       tbl.text("about", 500);
       tbl.boolean("approved").defaultTo(false);

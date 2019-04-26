@@ -12,7 +12,7 @@ function deleteAccount(id) {
 
 function getAccount(id) {
   return db("accounts")
-    .select("accounts.first_name", "accounts.last_name", "roles.role")
+    .select("accounts.name", "roles.role")
     .where({ "accounts.id": id })
     .innerJoin("roles", "roles.id", "accounts.role_id")
     .first();
@@ -29,7 +29,7 @@ function updateAccount(id, info) {
           .transacting(t);
 
         account = await db("accounts")
-          .select("accounts.first_name", "accounts.last_name", "roles.role")
+          .select("accounts.name", "roles.role")
           .where({ "accounts.id": id })
           .innerJoin("roles", "roles.id", "accounts.role_id")
           .first()

@@ -79,7 +79,7 @@ function getProjectById(id) {
           .transacting(t);
 
         students = await db("student_projects as sp")
-          .select("s.profile_pic", "a.first_name", "a.last_name")
+          .select("s.profile_pic", "a.name")
           .join("students as s", "s.id", "sp.student_id")
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "sp.project_id": project.id })
