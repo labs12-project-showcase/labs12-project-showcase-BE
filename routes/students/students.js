@@ -263,6 +263,7 @@ function updateStudent(account_id, info) {
         //Update students table if data exists and fetch the correct student_id
         let student;
         if (info.student) {
+          console.log("info.student is true", info.student);
           [student] = await db("students")
             .update(info.student, "*")
             .where({ account_id })
@@ -346,10 +347,7 @@ function updateStudent(account_id, info) {
           skills,
           desired_locations
         };
-
-        if (!updated.length) {
-          throw new Error("No valid information provided.");
-        }
+        console.log("UPDATED AFTER", updated);
       });
       resolve(updated);
     } catch (error) {

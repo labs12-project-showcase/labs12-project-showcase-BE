@@ -12,14 +12,27 @@ router.route("/").post(async (req, res) => {
       res.status(200).json(token);
     } else {
       const newUser = await actions.registerUser(info);
-      const acccess_token = await actions.getAPIToken();
-      const userInfo = await actions.getUserInfo(acccess_token, info.sub_id);
       const token = generateToken(newUser);
-      res.status(201).json({ token, userInfo });
+      res.status(201).json(token);
     }
   } catch (err) {
     console.log("ERROR", err);
     res.status(500).json({ message: "Something went wrong logging in." });
+  }
+});
+
+router.route("/initial").get(async (req, res) => {
+  const account_id = req.token.subject;
+  try {
+    const sub_id = await actions.findSubId(account_id);
+    const acccess_token = await actions.getAPIToken();
+    const userInfo = await actions.getUserInfo(acccess_token, sub_id);
+    res.status(200).json(userInfo);
+  } catch (error) {
+    console.log("ERROR", err);
+    res.status(500).json({
+      message: "Could not fetch the GitHub information for the user."
+    });
   }
 });
 

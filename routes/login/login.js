@@ -5,6 +5,7 @@ module.exports = {
   getAPIToken,
   getUserInfo,
   findUser,
+  findSubId,
   registerUser
 };
 
@@ -48,6 +49,13 @@ function getUserInfo(token, id) {
       reject(error);
     }
   });
+}
+
+function findSubId(account_id) {
+  return db("accounts")
+    .select("sub_id")
+    .where({ id: account_id })
+    .first();
 }
 
 function findUser(sub_id) {
