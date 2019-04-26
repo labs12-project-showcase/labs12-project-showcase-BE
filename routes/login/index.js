@@ -25,9 +25,11 @@ router.route("/").post(async (req, res) => {
 router.route("/initial").get(restricted(), async (req, res) => {
   const account_id = req.token.subject;
   try {
-    const sub_id = await actions.findSubId(account_id);
+    const { sub_id } = await actions.findSubId(account_id);
+    console.log(sub_id);
     const acccess_token = await actions.getAPIToken();
     const userInfo = await actions.getUserInfo(acccess_token, sub_id);
+    console.log(userInfo);
     res.status(200).json(userInfo);
   } catch (error) {
     console.log("ERROR", err);
