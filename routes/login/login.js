@@ -14,5 +14,20 @@ function findUser(sub_id) {
 }
 
 function registerUser(info) {
-  return db("accounts").insert(info, "*");
+  return new Promise(async (resolve, reject) => {
+    try {
+      await db.transaction(async t => {
+        [account] = await db("accounts")
+          .insert(info, "*")
+          .transacting(t);
+        await db("students")
+          .insert({ account_id: account.id })
+          .transacting(t);
+      });
+      resolve(account);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
 }

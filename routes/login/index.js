@@ -11,7 +11,7 @@ router.route("/").post(async (req, res) => {
       const token = generateToken(user);
       res.status(200).json(token);
     } else {
-      const [newUser] = await actions.registerUser(info);
+      const newUser = await actions.registerUser(info);
       const token = generateToken(newUser);
       res.status(201).json(token);
     }
