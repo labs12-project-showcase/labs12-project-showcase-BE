@@ -27,8 +27,6 @@ function endorseStudent(account_id, to_id, message) {
           from_id: fromId.id
         };
 
-        console.log(endorsement);
-
         [result] = await db("endorsements")
           .insert(endorsement, "*")
           .transacting(t);
