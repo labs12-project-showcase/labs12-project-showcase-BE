@@ -21,7 +21,7 @@ router.route("/").post(async (req, res) => {
   }
 });
 
-router.route("/initial").get(async (req, res) => {
+router.route("/initial").get(restricted(), async (req, res) => {
   const account_id = req.token.subject;
   try {
     const sub_id = await actions.findSubId(account_id);
