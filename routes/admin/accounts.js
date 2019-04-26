@@ -20,8 +20,7 @@ function getAccounts() {
         accounts = await db("accounts")
           .select(
             "accounts.id",
-            "accounts.first_name",
-            "accounts.last_name",
+            "accounts.name",
             "accounts.role_id",
             "roles.role"
           )
@@ -48,7 +47,7 @@ function updateAccount(id, info) {
     try {
       const [account] = await db("accounts")
         .where({ id })
-        .update(info, ["id", "first_name", "last_name", "role_id"]);
+        .update(info, ["id", "name", "role_id"]);
       resolve(account);
     } catch (error) {
       reject(error);

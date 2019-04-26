@@ -46,8 +46,7 @@ function getStudentById(id) {
       await db.transaction(async t => {
         student = await db("students as s")
           .select(
-            "a.first_name",
-            "a.last_name",
+            "a.name",
             "s.*",
             "c.cohort_name",
             "t.name as track",
@@ -63,19 +62,13 @@ function getStudentById(id) {
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
           .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
-          .groupBy(
-            "a.first_name",
-            "a.last_name",
-            "s.id",
-            "c.cohort_name",
-            "t.name"
-          )
+          .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.id": id })
           .first()
           .transacting(t);
 
         endorsements = await db("endorsements as e")
-          .select("e.message", "a.first_name", "a.last_name")
+          .select("e.message", "a.name")
           .join("students as s", "s.id", "e.from_id")
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "e.to_id": id })
@@ -115,8 +108,7 @@ function getStudentCards() {
     try {
       students = await db("accounts as a")
         .select(
-          "a.first_name",
-          "a.last_name",
+          "a.name",
           "s.linkedin",
           "s.github",
           "s.twitter",
@@ -128,8 +120,7 @@ function getStudentCards() {
         .leftOuterJoin("tracks as t", "s.track_id", "t.id")
         .leftOuterJoin("top_skills as ts", "s.id", "ts.student_id")
         .groupBy(
-          "a.first_name",
-          "a.last_name",
+          "a.name",
           "s.linkedin",
           "s.github",
           "s.twitter",
@@ -156,8 +147,7 @@ function getStudentProfile(account_id, update) {
       await db.transaction(async t => {
         student = await db("students as s")
           .select(
-            "a.first_name",
-            "a.last_name",
+            "a.name",
             "s.*",
             "c.cohort_name",
             "t.name as track",
@@ -173,19 +163,13 @@ function getStudentProfile(account_id, update) {
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
           .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
-          .groupBy(
-            "a.first_name",
-            "a.last_name",
-            "s.id",
-            "c.cohort_name",
-            "t.name"
-          )
+          .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.account_id": account_id })
           .first()
           .transacting(t);
 
         endorsements = await db("endorsements as e")
-          .select("e.message", "a.first_name", "a.last_name")
+          .select("e.message", "a.name")
           .join("students as s", "s.id", "e.from_id")
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "e.to_id": student.id })
@@ -243,6 +227,9 @@ function updateStudent(account_id, info) {
   return new Promise(async (resolve, reject) => {
     /* 
       Info {
+        account {
+          name
+        }
         student {
 
         }
@@ -264,6 +251,15 @@ function updateStudent(account_id, info) {
     let updated;
     try {
       await db.transaction(async t => {
+        //Update account if data exists
+        let account;
+        if (info.account) {
+          [account] = await db("accounts")
+            .update(info.account, "name")
+            .where({ id: account_id })
+            .transacting(t);
+        }
+
         //Update students table if data exists and fetch the correct student_id
         let student;
         if (info.student) {
@@ -343,12 +339,17 @@ function updateStudent(account_id, info) {
         }
 
         updated = {
+          ...account,
           ...student,
           hobbies,
           top_skills,
           skills,
           desired_locations
         };
+
+        if (!updated.length) {
+          throw new Error("No valid information provided.");
+        }
       });
       resolve(updated);
     } catch (error) {

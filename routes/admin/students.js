@@ -17,8 +17,7 @@ function getStudents() {
     try {
       let students = await db("students as s")
         .select(
-          "a.first_name",
-          "a.last_name",
+          "a.name",
           "s.graduated",
           "s.hired",
           "s.approved",
