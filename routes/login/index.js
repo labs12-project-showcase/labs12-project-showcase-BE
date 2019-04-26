@@ -2,6 +2,7 @@ const router = require("express").Router();
 
 const actions = require("./login");
 const generateToken = require("../../auth/token-handlers").generateToken;
+const restricted = require("../../middleware/restricted");
 
 router.route("/").post(async (req, res) => {
   const info = req.body;
