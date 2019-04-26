@@ -30,7 +30,7 @@ function getUserInfo(token, id) {
   return new Promise(async (resolve, reject) => {
     try {
       const api = process.env.OAUTH_MGR_API;
-      const url = `${api}/users/${id}`;
+      const url = `${api}users/${id}`;
       const headers = {
         authorization: `Bearer ${token}`
       };
