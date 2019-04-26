@@ -73,6 +73,7 @@ router.route("/profile/:id").get(async (req, res) => {
 
 router.route("/update").put(restricted(), async (req, res) => {
   const updates = req.body;
+  console.log("UPDATES", updates);
   const account_id = req.token.subject;
 
   try {
