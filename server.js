@@ -4,7 +4,6 @@ const cors = require("cors");
 
 const restricted = require("./middleware/restricted");
 
-const accountsRouter = require("./routes/account");
 const adminRouter = require("./routes/admin");
 const loginRouter = require("./routes/login");
 const studentsRouter = require("./routes/students");
@@ -20,7 +19,6 @@ server.use(middleware);
 server.use("/api/auth/login", loginRouter);
 server.use("/api/students", studentsRouter);
 server.use("/api/projects", projectsRouter);
-server.use("/api/accounts", restricted(), accountsRouter);
 server.use("/api/admin", restricted("staff"), adminRouter);
 
 server.get("/", (req, res) => {
