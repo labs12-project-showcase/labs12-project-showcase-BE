@@ -260,7 +260,7 @@ function getGitHubInfo(account_id, options) {
         about: data.bio
       };
 
-      resolve({ ...info, ...options });
+      resolve({ ...info, ...options, exists: false });
     } catch (error) {
       console.log(error);
       reject(error);
