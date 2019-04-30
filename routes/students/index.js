@@ -1,8 +1,15 @@
 const router = require("express").Router();
+const cors = require('cors'); 
+const sgMail = require('@sendgrid/mail');
 
 const actions = require("./students");
 const cloudParser = require("../../config/cloudinary");
 const restricted = require("../../middleware/restricted");
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+router.use(cors()); 
+
 
 module.exports = router;
 
@@ -119,3 +126,23 @@ router
 //       .then(newImage => res.json(newImage))
 //       .catch(err => console.log(err));
 //   });
+
+router.route("/contact-me/:id").post(restricted(), async (req, res) => {
+  //Get Variables from query string in the search bar
+  const msg = req.body;
+  const { id } = req.params;
+
+  //Database stuff, get the email.
+  actions.getStudentEmail(id)
+    .then(({ email }) => {
+      sgMail.send({
+        ...msg,
+        recipient: email
+      }).then(res => {
+        res.status(200).end();
+      })
+    }).catch(err => {
+      console.log(err);
+      res.status(500).json({ message: "Could not retrieve the student's email." });
+    })
+});
