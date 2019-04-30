@@ -2,7 +2,6 @@ const router = require("express").Router();
 
 const actions = require("./login");
 const generateToken = require("../../auth/token-handlers").generateToken;
-const restricted = require("../../middleware/restricted");
 
 router.route("/").post(async (req, res) => {
   const info = req.body;
@@ -19,23 +18,6 @@ router.route("/").post(async (req, res) => {
   } catch (err) {
     console.log("ERROR", err);
     res.status(500).json({ message: "Something went wrong logging in." });
-  }
-});
-
-router.route("/initial").get(restricted(), async (req, res) => {
-  const account_id = req.token.subject;
-  try {
-    const { sub_id } = await actions.findSubId(account_id);
-    console.log(sub_id);
-    const acccess_token = await actions.getAPIToken();
-    const userInfo = await actions.getUserInfo(acccess_token, sub_id);
-    console.log(userInfo);
-    res.status(200).json(userInfo);
-  } catch (error) {
-    console.log("ERROR", err);
-    res.status(500).json({
-      message: "Could not fetch the GitHub information for the user."
-    });
   }
 });
 

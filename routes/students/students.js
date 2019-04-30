@@ -1,4 +1,5 @@
 const db = require("../../data/config");
+const axios = require("axios");
 
 module.exports = {
   endorseStudent,
@@ -205,14 +206,66 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
+    if (!student && !endorsements && !top_projects && !projects) {
+      resolve(
+        getGitHubInfo(account_id, {
+          track_options,
+          cohort_options
+        })
+      );
+    }
     resolve({
       ...student,
       endorsements,
       top_projects,
       projects,
       track_options,
-      cohort_options
+      cohort_options,
+      exists: true
     });
+  });
+}
+
+function getGitHubInfo(account_id, options) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      //GET MGR API ACCESS TOKEN
+      const body = {
+        client_id: process.env.OAUTH_CLIENT_ID,
+        client_secret: process.env.OAUTH_CLIENT_SECRET,
+        audience: process.env.OAUTH_MGR_API,
+        grant_type: "client_credentials"
+      };
+      const {
+        data: { access_token }
+      } = await axios.post(process.env.OAUTH_TOKEN_API, body);
+
+      //GET ACCOUNT SUB_ID
+      const { sub_id } = await db("accounts")
+        .select("sub_id")
+        .where({ id: account_id })
+        .first();
+
+      //FETCH GHUB INFO
+      const api = process.env.OAUTH_MGR_API;
+      const url = `${api}users/${sub_id}`;
+      const headers = {
+        authorization: `Bearer ${access_token}`
+      };
+
+      const { data } = await axios.get(url, { headers });
+      const info = {
+        name: data.name,
+        github: data.html_url,
+        location: data.location,
+        about: data.bio
+      };
+
+      resolve({ ...info, ...options, exists: false });
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
   });
 }
 
