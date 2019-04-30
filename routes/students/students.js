@@ -5,6 +5,7 @@ module.exports = {
   endorseStudent,
   getStudentById,
   getStudentCards,
+  getStudentEmail,
   // getStudentLocations,
   getStudentProfile,
   updateStudent
@@ -135,6 +136,14 @@ function getStudentCards() {
     resolve(students);
   });
 }
+
+function getStudentEmail(id) {
+  return db('students')
+  .select('accounts.email')
+  .join('accounts', 'accounts.id', 'students.account_id')
+  .where({ 'students.id': id })
+  .first();
+};
 
 function getStudentProfile(account_id, update) {
   return new Promise(async (resolve, reject) => {

@@ -6,6 +6,7 @@
   "author": "Brandon Gardner",
   "license": "MIT",
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "axios": "^0.18.0",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^1.14.0",
