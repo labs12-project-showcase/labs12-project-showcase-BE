@@ -220,7 +220,8 @@ function getStudentProfile(account_id, update) {
       top_projects,
       projects,
       track_options,
-      cohort_options
+      cohort_options,
+      exists: true
     });
   });
 }
