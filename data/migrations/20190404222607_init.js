@@ -145,13 +145,8 @@ exports.up = function(knex, Promise) {
 
     .createTable("projects", tbl => {
       tbl.increments();
-      tbl
-        .integer("track_id")
-        .unsigned()
-        .references("tracks.id")
-        .notNullable()
-        .onDelete("RESTRICT")
-        .onUpdate("CASCADE");
+      tbl.string("youtube_url");
+      tbl.string("short_description");
       tbl.string("name");
       tbl.string("github");
       tbl.string("website");
