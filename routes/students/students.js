@@ -314,18 +314,17 @@ function updateStudent(account_id, info) {
     try {
       await db.transaction(async t => {
         //Update account if data exists
-        let account;
-        if (info.account) {
-          account = await db("accounts")
+        let name;
+        if (info.account !== {}) {
+          [name] = await db("accounts")
             .update(info.account, "name")
             .where({ id: account_id })
             .transacting(t);
         }
-        console.log(account);
 
         //Update students table if data exists and fetch the correct student_id
         let student;
-        if (info.student) {
+        if (info.student !== {}) {
           console.log("info.student is true", info.student);
           [student] = await db("students")
             .update(info.student, "*")
@@ -340,7 +339,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert hobbies if data exsists
         let hobbies;
-        if (info.hobbies) {
+        if (info.hobbies !== []) {
           info.hobbies = info.hobbies.map(hobby => ({
             student_id: student.id,
             hobby
@@ -356,7 +355,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert top_skills if data exsists
         let top_skills;
-        if (info.top_skills) {
+        if (info.top_skills !== []) {
           info.top_skills = info.top_skills.map(skill => ({
             student_id: student.id,
             skill
@@ -372,7 +371,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert skills if data exsists
         let skills;
-        if (info.skills) {
+        if (info.skills !== []) {
           info.skills = info.skills.map(skill => ({
             student_id: student.id,
             skill
@@ -388,7 +387,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert desired locations if data exsists
         let desired_locations;
-        if (info.desired_locations) {
+        if (info.desired_locations !== []) {
           info.desired_locations = info.desired_locations.map(location => ({
             student_id: student.id,
             location
@@ -403,7 +402,7 @@ function updateStudent(account_id, info) {
         }
 
         updated = {
-          ...account,
+          name,
           ...student,
           hobbies,
           top_skills,
