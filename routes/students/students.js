@@ -110,6 +110,7 @@ function getStudentCards() {
     try {
       students = await db("accounts as a")
         .select(
+          "s.id",
           "a.name",
           "s.linkedin",
           "s.github",
@@ -122,6 +123,7 @@ function getStudentCards() {
         .leftOuterJoin("tracks as t", "s.track_id", "t.id")
         .leftOuterJoin("top_skills as ts", "s.id", "ts.student_id")
         .groupBy(
+          "s.id",
           "a.name",
           "s.linkedin",
           "s.github",
