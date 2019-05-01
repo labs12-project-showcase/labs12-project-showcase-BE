@@ -131,29 +131,15 @@ router.route("/contact-me/:id").post(restricted(), async (req, res) => {
   const msg = req.body;
   const { id } = req.params;
 
-  console.log("in contact form");
-  console.log("MSG", msg);
-  console.log("id", id);
-
-  //Database stuff, get the email.
-  actions
-    .getStudentEmail(id)
-    .then(({ email }) => {
-      console.log("GOT EMAIL", email);
-      sgMail
-        .send({
-          ...msg,
-          recipient: email
-        })
-        .then(res => {
-          console.log("Email sent");
-          res.status(200).end();
-        });
-    })
-    .catch(err => {
-      console.log(err);
-      res
-        .status(500)
-        .json({ message: "Could not retrieve the student's email." });
-    });
+  try {
+    const { email } = await actions.getStudentEmail(id);
+    if (!email) {
+      throw new Error("Email not found!");
+    }
+    const success = await sgMail.send({ ...msg, to: email });
+    res.status(200).end();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Could not send the email." });
+  }
 });
