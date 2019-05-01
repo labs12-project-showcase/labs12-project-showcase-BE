@@ -46,7 +46,7 @@ function getProjectCards() {
         .select(
           "p.id",
           "p.name",
-          //"p.type",
+          //"p.short_description",
           db.raw("array_agg(distinct pm.media) as project_media")
         )
         .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")

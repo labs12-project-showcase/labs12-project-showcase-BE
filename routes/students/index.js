@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const cors = require('cors'); 
-const sgMail = require('@sendgrid/mail');
+const cors = require("cors");
+const sgMail = require("@sendgrid/mail");
 
 const actions = require("./students");
 const cloudParser = require("../../config/cloudinary");
@@ -8,8 +8,7 @@ const restricted = require("../../middleware/restricted");
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-router.use(cors()); 
-
+router.use(cors());
 
 module.exports = router;
 
@@ -132,17 +131,15 @@ router.route("/contact-me/:id").post(restricted(), async (req, res) => {
   const msg = req.body;
   const { id } = req.params;
 
-  //Database stuff, get the email.
-  actions.getStudentEmail(id)
-    .then(({ email }) => {
-      sgMail.send({
-        ...msg,
-        recipient: email
-      }).then(res => {
-        res.status(200).end();
-      })
-    }).catch(err => {
-      console.log(err);
-      res.status(500).json({ message: "Could not retrieve the student's email." });
-    })
+  try {
+    const { email } = await actions.getStudentEmail(id);
+    if (!email) {
+      throw new Error("Email not found!");
+    }
+    const success = await sgMail.send({ ...msg, to: email });
+    res.status(200).end();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Could not send the email." });
+  }
 });

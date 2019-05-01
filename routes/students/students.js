@@ -138,12 +138,12 @@ function getStudentCards() {
 }
 
 function getStudentEmail(id) {
-  return db('students')
-  .select('accounts.email')
-  .join('accounts', 'accounts.id', 'students.account_id')
-  .where({ 'students.id': id })
-  .first();
-};
+  return db("students")
+    .select("accounts.email")
+    .join("accounts", "accounts.id", "students.account_id")
+    .where({ "students.id": id })
+    .first();
+}
 
 function getStudentProfile(account_id, update) {
   return new Promise(async (resolve, reject) => {
@@ -316,11 +316,12 @@ function updateStudent(account_id, info) {
         //Update account if data exists
         let account;
         if (info.account) {
-          [account] = await db("accounts")
+          account = await db("accounts")
             .update(info.account, "name")
             .where({ id: account_id })
             .transacting(t);
         }
+        console.log(account);
 
         //Update students table if data exists and fetch the correct student_id
         let student;
