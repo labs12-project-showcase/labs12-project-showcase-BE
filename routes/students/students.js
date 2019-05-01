@@ -317,7 +317,7 @@ function updateStudent(account_id, info) {
       await db.transaction(async t => {
         //Update account if data exists
         let name;
-        if (Object.keys(info.account).length > 0) {
+        if (info.account && Object.keys(info.account).length) {
           [name] = await db("accounts")
             .update(info.account, "name")
             .where({ id: account_id })
@@ -326,7 +326,7 @@ function updateStudent(account_id, info) {
 
         //Update students table if data exists and fetch the correct student_id
         let student;
-        if (Object.keys(info.student).length > 0) {
+        if (info.student && Object.keys(info.student).length) {
           console.log("info.student is true", info.student);
           [student] = await db("students")
             .update(info.student, "*")
@@ -341,7 +341,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert hobbies if data exsists
         let hobbies;
-        if (info.hobbies.length > 0) {
+        if (info.hobbies && info.hobbies.length) {
           info.hobbies = info.hobbies.map(hobby => ({
             student_id: student.id,
             hobby
@@ -357,7 +357,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert top_skills if data exsists
         let top_skills;
-        if (info.top_skills.length > 0) {
+        if (info.top_skills && info.top_skills.length) {
           info.top_skills = info.top_skills.map(skill => ({
             student_id: student.id,
             skill
@@ -373,7 +373,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert skills if data exsists
         let skills;
-        if (info.skills.length > 0) {
+        if (info.skills && info.skills.length) {
           info.skills = info.skills.map(skill => ({
             student_id: student.id,
             skill
@@ -389,7 +389,7 @@ function updateStudent(account_id, info) {
 
         //Delete and then insert desired locations if data exsists
         let desired_locations;
-        if (info.desired_locations.length > 0) {
+        if (info.desired_locations && info.desired_locations.length) {
           info.desired_locations = info.desired_locations.map(location => ({
             student_id: student.id,
             location
