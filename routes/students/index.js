@@ -115,19 +115,7 @@ router
     }
   });
 
-//Cloudinary example
-// server.post('/api/images', cloudParser.single("image"), (req, res) => {
-//     console.log(req.file) // to see what is returned to you
-//     const image = {};
-//     image.url = req.file.url;
-//     image.id = req.file.public_id;
-//     db('images').insert(image) // save image information in database
-//       .then(newImage => res.json(newImage))
-//       .catch(err => console.log(err));
-//   });
-
 router.route("/contact-me/:id").post(restricted(), async (req, res) => {
-  //Get Variables from query string in the search bar
   const msg = req.body;
   const { id } = req.params;
 
