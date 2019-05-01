@@ -113,7 +113,7 @@ function updateProject(id, info) {
       await db.transaction(async t => {
         //Update project table if exists
         let project;
-        if (info.project !== {}) {
+        if (Object.keys(info.project).length > 0) {
           [project] = await db("projects")
             .update(info.project, "*")
             .where({ id })
@@ -122,7 +122,7 @@ function updateProject(id, info) {
 
         //Delete old media and insert if exists
         let media;
-        if (info.media !== []) {
+        if (info.media.length > 0) {
           info.media = info.media.map(link => ({
             project_id: id,
             media: link
@@ -138,7 +138,7 @@ function updateProject(id, info) {
         }
 
         let skills;
-        if (info.skills !== []) {
+        if (info.skills.length > 0) {
           info.skills = info.skills.map(skill => ({
             project_id: id,
             skill
