@@ -21,7 +21,7 @@ function getStudents() {
           "s.graduated",
           "s.hired",
           "s.approved",
-          "t.name",
+          "t.name as track",
           "c.cohort_name"
         )
         .innerJoin("accounts as a", "s.account_id", "a.id")
