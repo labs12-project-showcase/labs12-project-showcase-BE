@@ -106,9 +106,8 @@ function getStudentById(id) {
 
 function getStudentCards() {
   return new Promise(async (resolve, reject) => {
-    let students;
     try {
-      ({rows: students}) = await db.raw(
+      const { rows: students } = await db.raw(
         "select s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name as track, array_agg(ts.skill) as top_skills, jsonb_agg(jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects from accounts as a inner join students as s on s.account_id = a.id left outer join tracks as t on s.track_id = t.id left outer join top_skills as ts on s.id = ts.student_id left outer join student_projects as tp on tp.student_id = s.id left outer join projects as p on p.id = tp.project_id left outer join project_media as pm on pm.id = ( select project_media.id from project_media where project_media.project_id = p.id limit 1)group by s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name"
       );
       // students = await db("accounts as a")
@@ -147,11 +146,11 @@ function getStudentCards() {
       //     "t.name"
       //   )
       //   .debug();
+      resolve(students);
     } catch (error) {
       console.log(error);
       reject(error);
     }
-    resolve(students);
   });
 }
 
