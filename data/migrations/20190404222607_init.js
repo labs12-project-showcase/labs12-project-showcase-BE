@@ -172,7 +172,7 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl.string("media");
     })
@@ -184,7 +184,7 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl.string("skill");
     })
@@ -196,14 +196,14 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl
         .integer("student_id")
         .unsigned()
         .references("students.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
     })
 
@@ -214,14 +214,14 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl
         .integer("student_id")
         .unsigned()
         .references("students.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });
 };
