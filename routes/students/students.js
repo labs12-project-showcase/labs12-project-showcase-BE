@@ -323,6 +323,12 @@ function updateStudent(account_id, info) {
         ]
         desired_locations [
 
+        ],
+        top_projects [
+
+        ],
+        projects [
+
         ]
       }
     */
@@ -418,13 +424,37 @@ function updateStudent(account_id, info) {
             .transacting(t);
         }
 
+        let top_projects;
+        if (info.top_projects && info.top_projects.length) {
+          await db("top_projects")
+            .where({ student_id: student.id })
+            .del()
+            .transacting(t);
+          top_projects = await db("top_projects")
+            .insert(info.top_projects, "*")
+            .transacting(t);
+        }
+
+        let projects;
+        if (info.projects && info.projects.length) {
+          await db("projects")
+            .where({ student_id: student.id })
+            .del()
+            .transacting(t);
+          projects = await db("student_projects")
+            .insert(info.projects, "*")
+            .transacting(t);
+        }
+
         updated = {
           name,
           ...student,
           hobbies,
           top_skills,
           skills,
-          desired_locations
+          desired_locations,
+          top_projects,
+          projects
         };
       });
       resolve(updated);
