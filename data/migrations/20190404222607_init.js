@@ -114,6 +114,8 @@ exports.up = function(knex, Promise) {
         .onDelete("RESTRICT")
         .onUpdate("CASCADE");
       tbl.string("location");
+      tbl.string("lat");
+      tbl.string("lon");
     })
 
     .createTable("hobbies", tbl => {
