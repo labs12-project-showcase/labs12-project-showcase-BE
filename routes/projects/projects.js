@@ -23,12 +23,22 @@ function createProject(info) {
             .insert(rest, "*")
             .transacting(t);
 
-          await db("student_projects")
-            .insert({
-              project_id: project.id,
-              student_id
-            })
-            .transacting(t);
+          const top_projects = await db("top_projects").where({ student_id });
+          if (top_projects && top_projects.length >= 3) {
+            await db("student_projects")
+              .insert({
+                project_id: project.id,
+                student_id
+              })
+              .transacting(t);
+          } else {
+            await db("top_projects")
+              .insert({
+                project_id: project.id,
+                student_id
+              })
+              .transacting(t);
+          }
         }
       });
       resolve(project);
