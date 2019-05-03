@@ -114,6 +114,8 @@ exports.up = function(knex, Promise) {
         .onDelete("RESTRICT")
         .onUpdate("CASCADE");
       tbl.string("location");
+      tbl.string("lat");
+      tbl.string("lon");
     })
 
     .createTable("hobbies", tbl => {
@@ -154,8 +156,8 @@ exports.up = function(knex, Promise) {
       tbl.string("name");
       tbl.string("github");
       tbl.string("website");
-      tbl.string("tech_pitch");
-      tbl.string("customer_pitch");
+      tbl.text("tech_pitch");
+      tbl.text("customer_pitch");
       tbl.string("medium");
       tbl.string("fe_link");
       tbl.string("be_link");
@@ -172,7 +174,7 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl.string("media");
     })
@@ -184,7 +186,7 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl.string("skill");
     })
@@ -196,14 +198,14 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl
         .integer("student_id")
         .unsigned()
         .references("students.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
     })
 
@@ -214,14 +216,14 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("projects.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl
         .integer("student_id")
         .unsigned()
         .references("students.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
     });
 };
