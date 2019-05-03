@@ -115,12 +115,13 @@ router
     }
   });
 
-router.route("/contact-me/:id").post(restricted(), async (req, res) => {
+router.route("/contact-me/:id").post(async (req, res) => {
   const msg = req.body;
   const { id } = req.params;
 
   try {
     const { email } = await actions.getStudentEmail(id);
+    console.log("EMAIL", email);
     if (!email) {
       throw new Error("Email not found!");
     }
