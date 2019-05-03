@@ -437,7 +437,7 @@ function updateStudent(account_id, info) {
 
         let projects;
         if (info.projects && info.projects.length) {
-          await db("projects")
+          await db("student_projects")
             .where({ student_id: student.id })
             .del()
             .transacting(t);
