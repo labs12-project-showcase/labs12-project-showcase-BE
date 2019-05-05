@@ -77,9 +77,15 @@ function createProject(info) {
               })
               .transacting(t);
           }
+
+          project = {
+            ...project,
+            media,
+            skills
+          };
         }
       });
-      resolve({ ...project, media, skills });
+      resolve(project);
     } catch (error) {
       console.log(error);
       reject(error);
