@@ -8,20 +8,58 @@ module.exports = {
 };
 
 function createProject(info) {
-  const { student_id, ...rest } = info;
+  /*
+  Info {
+    student_id: Number,
+    project: {
+
+    },
+    skills: [
+
+    ],
+    media: [
+
+    ]
+  }
+  */
   let exists, project;
   return new Promise(async (resolve, reject) => {
+    if (!info.project) {
+      throw new Error("No project provided.");
+    }
     try {
       await db.transaction(async t => {
         exists = await db("projects")
-          .where({ github: rest.github })
+          .where({ github: info.project.github })
           .first();
         if (exists) {
           throw new Error("Project already exists.");
         } else {
           [project] = await db("projects")
-            .insert(rest, "*")
+            .insert(info.project, "*")
             .transacting(t);
+
+          let media;
+          if (info.media && info.media.length) {
+            info.media = info.media.map(link => ({
+              project_id: project.id,
+              media: link
+            }));
+            media = await db("project_media")
+              .insert(info.media, "media")
+              .transacting(t);
+          }
+
+          let skills;
+          if (info.skills && info.skills.length) {
+            info.skills = info.skills.map(skill => ({
+              project_id: project.id,
+              skill
+            }));
+            skills = await db("project_skills")
+              .insert(info.skills, "skill")
+              .transacting(t);
+          }
 
           const top_projects = await db("top_projects").where({ student_id });
           if (top_projects && top_projects.length >= 3) {
@@ -39,6 +77,12 @@ function createProject(info) {
               })
               .transacting(t);
           }
+
+          project = {
+            ...project,
+            media,
+            skills
+          };
         }
       });
       resolve(project);
