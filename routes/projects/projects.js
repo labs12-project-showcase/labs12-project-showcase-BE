@@ -22,6 +22,7 @@ function createProject(info) {
     ]
   }
   */
+  console.log("INFO AT START", info);
   let exists, project;
   return new Promise(async (resolve, reject) => {
     if (!info.project) {
@@ -38,6 +39,7 @@ function createProject(info) {
           [project] = await db("projects")
             .insert(info.project, "*")
             .transacting(t);
+          console.log("PROJECT ID AFTER INSERT", project.id);
 
           let media;
           if (info.media && info.media.length) {
@@ -56,10 +58,12 @@ function createProject(info) {
               project_id: project.id,
               skill
             }));
+            console.log("INFO.SKILLS", info.skills);
             skills = await db("project_skills")
               .insert(info.skills, "skill")
               .transacting(t);
           }
+          console.log("SKILLS AFTER INSERT", skills);
 
           const top_projects = await db("top_projects").where({
             student_id: info.student_id
@@ -85,6 +89,7 @@ function createProject(info) {
             media,
             skills
           };
+          console.log("PROJECT AFTER CREATION", project);
         }
       });
       resolve(project);
