@@ -39,6 +39,7 @@ function createProject(info) {
           [project] = await db("projects")
             .insert(info.project, "*")
             .transacting(t);
+          console.log("PROJECT ID AFTER INSERT", project.id);
 
           let media;
           if (info.media && info.media.length) {
