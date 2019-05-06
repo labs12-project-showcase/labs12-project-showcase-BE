@@ -61,19 +61,21 @@ function createProject(info) {
               .transacting(t);
           }
 
-          const top_projects = await db("top_projects").where({ student_id });
+          const top_projects = await db("top_projects").where({
+            student_id: info.student_id
+          });
           if (top_projects && top_projects.length >= 3) {
             await db("student_projects")
               .insert({
                 project_id: project.id,
-                student_id
+                student_id: info.student_id
               })
               .transacting(t);
           } else {
             await db("top_projects")
               .insert({
                 project_id: project.id,
-                student_id
+                student_id: info.student_id
               })
               .transacting(t);
           }
