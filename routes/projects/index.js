@@ -56,12 +56,12 @@ router
 
 router
   .route("/:id/media")
-  .put(restricted(), cloudParser.array("images", 3), async (req, res) => {
+  .put(restricted(), cloudParser.single("image"), async (req, res) => {
     const { id } = req.params;
     try {
       if (req.files) {
         const info = {
-          media: req.files.map(file => file.url)
+          media: { media: req.file.url }
         };
         const updated = await actions.updateProject(id, info);
         res.status(200).json(updated);

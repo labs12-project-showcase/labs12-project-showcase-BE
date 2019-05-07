@@ -86,7 +86,7 @@ function createProject(info) {
 
           project = {
             ...project,
-            media,
+            project_media: media,
             project_skills: skills
           };
           console.log("PROJECT AFTER CREATION", project);
@@ -170,9 +170,9 @@ function updateProject(id, info) {
         Project {
 
         }
-        Media [
-
-        ]
+        Media {
+          link
+        }
         Skills [
 
         ]
@@ -192,16 +192,12 @@ function updateProject(id, info) {
 
         //Delete old media and insert if exists
         let media;
-        if (info.media && info.media.length) {
-          info.media = info.media.map(link => ({
-            project_id: id,
-            media: link
-          }));
+        if (info.media) {
+          info.media = {
+            ...info.media,
+            project_id: id
+          };
           console.log(info.media);
-          await db("project_media")
-            .where({ project_id: id })
-            .del()
-            .transacting(t);
           media = await db("project_media")
             .insert(info.media, "media")
             .transacting(t);
@@ -224,7 +220,7 @@ function updateProject(id, info) {
 
         updated = {
           ...project,
-          media,
+          project_media: media,
           project_skills: skills
         };
       });
