@@ -8,6 +8,7 @@ const adminRouter = require("./routes/admin");
 const loginRouter = require("./routes/login");
 const studentsRouter = require("./routes/students");
 const projectsRouter = require("./routes/projects");
+const searchRouter = require("./routes/search");
 
 const server = express();
 
@@ -19,6 +20,7 @@ server.use(middleware);
 server.use("/api/auth/login", loginRouter);
 server.use("/api/students", studentsRouter);
 server.use("/api/projects", projectsRouter);
+server.use("/api/search", searchRouter);
 server.use("/api/admin", /* restricted("staff"), */ adminRouter);
 
 server.get("/", (req, res) => {
