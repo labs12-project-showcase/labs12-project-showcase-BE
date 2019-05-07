@@ -87,7 +87,7 @@ function createProject(info) {
           project = {
             ...project,
             media,
-            skills
+            project_skills: skills
           };
           console.log("PROJECT AFTER CREATION", project);
         }
@@ -145,6 +145,15 @@ function getProjectById(id) {
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "sp.project_id": project.id })
           .transacting(t);
+
+        const top_students = await db("top_projects as tp")
+          .select("s.profile_pic", "a.name", "s.id as student_id")
+          .join("students as s", "s.id", "tp.student_id")
+          .join("accounts as a", "a.id", "s.account_id")
+          .where({ "tp.project_id": project.id })
+          .transacting(t);
+
+        students = [...students, ...top_students];
       });
       resolve({ ...project, students });
     } catch (error) {
@@ -216,7 +225,7 @@ function updateProject(id, info) {
         updated = {
           ...project,
           media,
-          skills
+          project_skills: skills
         };
       });
       resolve(updated);
