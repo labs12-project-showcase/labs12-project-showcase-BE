@@ -1,8 +1,9 @@
 const router = require("express").Router();
 
 const accountsActions = require("./accounts");
-const studentsActions = require("./students");
 const cohortsActions = require("./cohorts");
+const projectsActions = require("./projects");
+const studentsActions = require("./students");
 const trackActions = require("./tracks");
 
 const resources = {
@@ -11,17 +12,22 @@ const resources = {
     update: accountsActions.updateAccount,
     remove: accountsActions.deleteAccount
   },
-  students: {
-    get: studentsActions.getStudents,
-    update: studentsActions.updateStudent,
-    remove: studentsActions.deleteStudent
-  },
   cohorts: {
     create: cohortsActions.addCohort,
     get: cohortsActions.getCohorts,
     update: cohortsActions.updateCohort,
     remove: cohortsActions.deleteCohort,
     requirements: info => info.cohort_name
+  },
+  projects: {
+    get: projectsActions.getProjects,
+    update: projectsActions.updateProject,
+    remove: projectsActions.deleteProject
+  },
+  students: {
+    get: studentsActions.getStudents,
+    update: studentsActions.updateStudent,
+    remove: studentsActions.deleteStudent
   },
   tracks: {
     create: trackActions.addTrack,
