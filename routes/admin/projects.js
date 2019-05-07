@@ -34,7 +34,7 @@ function getProjects() {
           .select(
             "p.name",
             "p.short_description",
-            "p.students",
+            // "p.students",
             "p.approved",
             "p.id"
           );
