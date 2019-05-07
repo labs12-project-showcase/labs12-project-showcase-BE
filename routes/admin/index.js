@@ -21,8 +21,8 @@ const resources = {
   },
   projects: {
     get: projectsActions.getProjects,
-    update: projectsActions.updateProjects,
-    remove: projectsActions.deleteProjects
+    update: projectsActions.updateProject,
+    remove: projectsActions.deleteProject
   },
   students: {
     get: studentsActions.getStudents,
