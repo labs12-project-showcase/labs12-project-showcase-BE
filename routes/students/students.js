@@ -532,27 +532,8 @@ function deleteProfilePicture(account_id, url) {
           .first()
           .transacting(t);
         console.log("STUDENT AFTER FIRST FETCH", student);
-        if (student.cloudinary_id) {
-          console.log("STUDENT CLOUD ID TRUE");
-          new Promise(async (resolve, reject) => {
-            cloudinary.v2.uploader.destroy(
-              student.cloudinary_id,
-              async (error, result) => {
-                if (result) {
-                  console.log("RESULT TRUE", result);
-                  await db("students")
-                    .where({ profile_pic: url, account_id })
-                    .del()
-                    .transacting(t);
-                  resolve();
-                } else {
-                  console.log("ERROR IN CLOUD DELETE", error);
-                  reject(error);
-                }
-              }
-            );
-          });
-        } else if (student) {
+
+        if (student) {
           await db("students")
             .where({ profile_pic: url, account_id })
             .del()
@@ -561,6 +542,24 @@ function deleteProfilePicture(account_id, url) {
           throw new Error("Student could not be located.");
         }
       });
+      if (student.cloudinary_id) {
+        resolve(
+          new Promise((resolve, reject) => {
+            cloudinary.v2.uploader.destroy(
+              student.cloudinary_id,
+              (error, result) => {
+                if (result) {
+                  console.log("RESULT TRUE", result);
+                  resolve();
+                } else {
+                  console.log("ERROR IN CLOUD DELETE", error);
+                  reject(error);
+                }
+              }
+            );
+          })
+        );
+      }
       resolve();
     } catch (error) {
       console.log(error);
