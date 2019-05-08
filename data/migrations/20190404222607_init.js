@@ -65,6 +65,7 @@ exports.up = function(knex, Promise) {
         .defaultTo(
           "https://res.cloudinary.com/hirelambdastudents/image/upload/v1556814928/pictures/avatar.png"
         );
+      tbl.string("cloudinary_id");
       tbl.string("location");
       tbl.string("lat");
       tbl.string("lon");
@@ -177,6 +178,7 @@ exports.up = function(knex, Promise) {
         .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl.string("media");
+      tbl.string("cloudinary_id");
     })
 
     .createTable("project_skills", tbl => {
