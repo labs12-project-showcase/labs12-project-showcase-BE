@@ -1,7 +1,9 @@
 const db = require("../../data/config");
+const cloudinary = require("cloudinary");
 
 module.exports = {
   createProject,
+  deleteProjectImage,
   getProjectCards,
   getProjectById,
   updateProject
@@ -225,6 +227,49 @@ function updateProject(id, info) {
         };
       });
       resolve(updated);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function deleteProjectImage(project_id, url) {
+  return new Promise(async (resolve, reject) => {
+    let project;
+    try {
+      await db.transaction(async t => {
+        project = await db("project_media")
+          .where({ media: url, project_id })
+          .transacting(t);
+        console.log("PROJECT AFTER FIRST FETCH", project);
+        if (project.cloudinary_id) {
+          console.log("PROJECT CLOUD ID TRUE");
+          cloudinary.v2.uploader.destroy(
+            project.cloudinary_id,
+            async (error, result) => {
+              if (result) {
+                console.log("RESULT TRUE", result);
+                await db("project_media")
+                  .where({ media: url, project_id })
+                  .del()
+                  .transacting(t);
+              } else {
+                console.log("ERROR IN CLOUD DELETE", error);
+                throw new Error(error);
+              }
+            }
+          );
+        } else if (project) {
+          await db("project_media")
+            .where({ media: url, project_id })
+            .del()
+            .transacting(t);
+        } else {
+          throw new Error("Project could not be located.");
+        }
+      });
+      resolve();
     } catch (error) {
       console.log(error);
       reject(error);

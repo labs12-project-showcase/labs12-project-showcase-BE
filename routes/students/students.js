@@ -2,6 +2,7 @@ const db = require("../../data/config");
 const axios = require("axios");
 
 module.exports = {
+  deleteProfilePicture,
   endorseStudent,
   getStudentById,
   getStudentCards,
@@ -458,6 +459,49 @@ function updateStudent(account_id, info) {
         };
       });
       resolve(updated);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function deleteProfilePicture(account_id, url) {
+  return new Promise(async (resolve, reject) => {
+    let student;
+    try {
+      await db.transaction(async t => {
+        student = await db("students")
+          .where({ profile_pic: url, account_id })
+          .transacting(t);
+        console.log("STUDENT AFTER FIRST FETCH", student);
+        if (student.cloudinary_id) {
+          console.log("STUDENT CLOUD ID TRUE");
+          cloudinary.v2.uploader.destroy(
+            student.cloudinary_id,
+            async (error, result) => {
+              if (result) {
+                console.log("RESULT TRUE", result);
+                await db("students")
+                  .where({ profile_pic: url, account_id })
+                  .del()
+                  .transacting(t);
+              } else {
+                console.log("ERROR IN CLOUD DELETE", error);
+                throw new Error(error);
+              }
+            }
+          );
+        } else if (student) {
+          await db("students")
+            .where({ profile_pic: url, account_id })
+            .del()
+            .transacting(t);
+        } else {
+          throw new Error("Student could not be located.");
+        }
+      });
+      resolve();
     } catch (error) {
       console.log(error);
       reject(error);

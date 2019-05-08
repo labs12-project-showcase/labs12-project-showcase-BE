@@ -101,7 +101,8 @@ router
       if (req.file && req.file.url) {
         const updated = await actions.updateStudent(account_id, {
           student: {
-            profile_pic: req.file.url
+            profile_pic: req.file.url,
+            cloudinary_id: req.file.public_id
           }
         });
         res.status(200).json(updated);
@@ -112,6 +113,21 @@ router
       res
         .status(500)
         .json({ message: "Something went wrong uploading the picture." });
+    }
+  });
+
+router
+  .route("/update/profile_picture/:url")
+  .delete(restricted(), async (req, res) => {
+    const account_id = req.token.subject;
+    const { url } = req.params;
+    try {
+      await actions.deleteProfilePicture(account_id, url);
+      res.status(204).end();
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Something went wrong removing the user image." });
     }
   });
 
