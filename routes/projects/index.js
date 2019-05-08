@@ -75,8 +75,9 @@ router
     }
   });
 
-router.route("/:id/media/:url").delete(restricted(), async (req, res) => {
-  const { id, url } = req.params;
+router.route("/:id/media/remove").put(restricted(), async (req, res) => {
+  const { id } = req.params;
+  const { url } = req.body;
   try {
     await actions.deleteProjectImage(id, url);
     res.status(204).end();
