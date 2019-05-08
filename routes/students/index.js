@@ -13,6 +13,7 @@ router.use(cors());
 module.exports = router;
 
 router.route("/cards/filter").get(async (req, res) => {
+  console.log('req.query', req.query);
   try {
     students = await actions.getFilteredStudentCards(req.query);
     res.status(200).json(students);

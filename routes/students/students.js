@@ -105,8 +105,20 @@ function getStudentById(id) {
   });
 }
 
-function getFilteredStudentCards({ track, badge }) {
-  console.log('queries', track, badge);
+function getFilteredStudentCards({ tracks, badge, within }) {
+  // console.log('queries', tracks, badge, within);
+  let trackString = 'and (';
+  if (tracks) {
+    let splitTracks = tracks.split('');
+    splitTracks.forEach((t, i) => {
+      if (i === 0) {
+        trackString = trackString + 'track_id = ' + t;
+      } else {
+        trackString = trackString + ' or track_id = ' + t;
+      }
+    });
+    trackString = trackString + ')';
+  }
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -123,7 +135,7 @@ function getFilteredStudentCards({ track, badge }) {
           from accounts as a
           inner join students as s on s.account_id = a.id
           ${ badge === 'true' ? "and acclaim != '' and acclaim is not null" : "" }
-          ${ track ? `and track_id = ${ parseInt(track) }` : "" }
+          ${ tracks ? `${trackString}` : "" }
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
