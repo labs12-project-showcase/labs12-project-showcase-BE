@@ -478,21 +478,24 @@ function deleteProfilePicture(account_id, url) {
         console.log("STUDENT AFTER FIRST FETCH", student);
         if (student.cloudinary_id) {
           console.log("STUDENT CLOUD ID TRUE");
-          await cloudinary.v2.uploader.destroy(
-            student.cloudinary_id,
-            async (error, result) => {
-              if (result) {
-                console.log("RESULT TRUE", result);
-                await db("students")
-                  .where({ profile_pic: url, account_id })
-                  .del()
-                  .transacting(t);
-              } else {
-                console.log("ERROR IN CLOUD DELETE", error);
-                throw new Error(error);
+          new Promise(async (resolve, reject) => {
+            cloudinary.v2.uploader.destroy(
+              student.cloudinary_id,
+              async (error, result) => {
+                if (result) {
+                  console.log("RESULT TRUE", result);
+                  await db("students")
+                    .where({ profile_pic: url, account_id })
+                    .del()
+                    .transacting(t);
+                  resolve();
+                } else {
+                  console.log("ERROR IN CLOUD DELETE", error);
+                  reject(error);
+                }
               }
-            }
-          );
+            );
+          });
         } else if (student) {
           await db("students")
             .where({ profile_pic: url, account_id })
