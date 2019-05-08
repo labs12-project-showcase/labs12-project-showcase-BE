@@ -34,11 +34,11 @@ function getProjects() {
           .select(
             "p.name",
             "p.short_description",
-            // "p.students",
+            "p.students",
             "p.approved",
             "p.id"
-          );
-        //   .innerJoin("accounts as a", "s.account_id", "a.id")
+          )
+          .innerJoin("student_projects as sp", "p.id", "sp.project_id");
         //   .leftOuterJoin("tracks as t", "t.id", "s.track_id")
         //   .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id");
   
