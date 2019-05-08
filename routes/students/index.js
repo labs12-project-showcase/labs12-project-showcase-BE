@@ -101,7 +101,8 @@ router
       if (req.file && req.file.url) {
         const updated = await actions.updateStudent(account_id, {
           student: {
-            profile_pic: req.file.url
+            profile_pic: req.file.url,
+            cloudinary_id: req.file.public_id
           }
         });
         res.status(200).json(updated);

@@ -1,7 +1,9 @@
 const db = require("../../data/config");
+const cloudinary = require("cloudinary");
 
 module.exports = {
   createProject,
+  deleteProjectImage,
   getProjectCards,
   getProjectById,
   updateProject
@@ -225,6 +227,44 @@ function updateProject(id, info) {
         };
       });
       resolve(updated);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function deleteProjectImage(project_id, url) {
+  return new Promise(async (resolve, reject) => {
+    let project;
+    try {
+      await db.transaction(async t => {
+        project = await db("project_media")
+          .where({ media: url, project_id })
+          .transacting(t);
+        if (project.cloudinary_id) {
+          cloudinary.v2.uploader.destroy(
+            project.cloudinary_id,
+            async (error, result) => {
+              if (result) {
+                await db("project_media")
+                  .where({ url, project_id })
+                  .del()
+                  .transacting(t);
+              } else {
+                console.log(error);
+                throw new Error(error);
+              }
+            }
+          );
+        } else {
+          await db("project_media")
+            .where({ url, project_id })
+            .del()
+            .transacting(t);
+        }
+      });
+      resolve();
     } catch (error) {
       console.log(error);
       reject(error);
