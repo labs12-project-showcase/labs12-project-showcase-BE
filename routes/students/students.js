@@ -546,6 +546,7 @@ function deleteProfilePicture(account_id, url) {
       console.log("STUDENT AFTER TX", student);
       console.log("STUDENT CLOUD ID", student.cloudinary_id);
       if (student.cloudinary_id) {
+        console.log("CLOUD ID IS TRUE!");
         resolve(
           new Promise((resolve, reject) => {
             cloudinary.v2.uploader.destroy(
