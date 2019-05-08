@@ -6,6 +6,7 @@ module.exports = {
   endorseStudent,
   getStudentById,
   getStudentCards,
+  getFilteredStudentCards,
   getStudentEmail,
   // getStudentLocations,
   getStudentProfile,
@@ -102,6 +103,61 @@ function getStudentById(id) {
       top_projects,
       projects
     });
+  });
+}
+
+function getFilteredStudentCards({ tracks, badge, within }) {
+  // console.log('queries', tracks, badge, within);
+  let trackString = 'and (';
+  if (tracks) {
+    let splitTracks = tracks.split('');
+    splitTracks.forEach((t, i) => {
+      if (i === 0) {
+        trackString = trackString + 'track_id = ' + t;
+      } else {
+        trackString = trackString + ' or track_id = ' + t;
+      }
+    });
+    trackString = trackString + ')';
+  }
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { rows: students } = await db.raw(
+        `select
+          s.id,
+          a.name,
+          s.linkedin,
+          s.github,
+          s.twitter,
+          s.profile_pic,
+          t.name as track,
+          array_agg(distinct ts.skill) as top_skills,
+          jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
+          from accounts as a
+          inner join students as s on s.account_id = a.id
+          ${ badge === 'true' ? "and acclaim != '' and acclaim is not null" : "" }
+          ${ tracks ? `${trackString}` : "" }
+          left outer join tracks as t on s.track_id = t.id
+          left outer join top_skills as ts on s.id = ts.student_id
+          left outer join top_projects as tp on tp.student_id = s.id
+          left outer join projects as p on p.id = tp.project_id
+          left outer join project_media as pm on pm.id = (
+            select project_media.id from project_media where project_media.project_id = p.id limit 1
+          )
+          group by
+            s.id,
+            a.name,
+            s.linkedin,
+            s.github,
+            s.twitter,
+            s.profile_pic,
+            t.name`
+      );
+      resolve(students);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
   });
 }
 
@@ -476,24 +532,8 @@ function deleteProfilePicture(account_id, url) {
           .first()
           .transacting(t);
         console.log("STUDENT AFTER FIRST FETCH", student);
-        if (student.cloudinary_id) {
-          console.log("STUDENT CLOUD ID TRUE");
-          cloudinary.v2.uploader.destroy(
-            student.cloudinary_id,
-            async (error, result) => {
-              if (result) {
-                console.log("RESULT TRUE", result);
-                await db("students")
-                  .where({ profile_pic: url, account_id })
-                  .del()
-                  .transacting(t);
-              } else {
-                console.log("ERROR IN CLOUD DELETE", error);
-                throw new Error(error);
-              }
-            }
-          );
-        } else if (student) {
+
+        if (student) {
           await db("students")
             .where({ profile_pic: url, account_id })
             .del()
@@ -502,6 +542,24 @@ function deleteProfilePicture(account_id, url) {
           throw new Error("Student could not be located.");
         }
       });
+      if (student.cloudinary_id) {
+        resolve(
+          new Promise((resolve, reject) => {
+            cloudinary.v2.uploader.destroy(
+              student.cloudinary_id,
+              (error, result) => {
+                if (result) {
+                  console.log("RESULT TRUE", result);
+                  resolve();
+                } else {
+                  console.log("ERROR IN CLOUD DELETE", error);
+                  reject(error);
+                }
+              }
+            );
+          })
+        );
+      }
       resolve();
     } catch (error) {
       console.log(error);
