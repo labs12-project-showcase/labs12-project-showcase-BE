@@ -242,17 +242,20 @@ function deleteProjectImage(project_id, url) {
         project = await db("project_media")
           .where({ media: url, project_id })
           .transacting(t);
+        console.log("PROJECT AFTER FIRST FETCH", project);
         if (project.cloudinary_id) {
+          console.log("PROJECT CLOUD ID TRUE");
           cloudinary.v2.uploader.destroy(
             project.cloudinary_id,
             async (error, result) => {
               if (result) {
+                console.log("RESULT TRUE", result);
                 await db("project_media")
                   .where({ url, project_id })
                   .del()
                   .transacting(t);
               } else {
-                console.log(error);
+                console.log("ERROR IN CLOUD DELETE", error);
                 throw new Error(error);
               }
             }
