@@ -473,6 +473,7 @@ function deleteProfilePicture(account_id, url) {
       await db.transaction(async t => {
         student = await db("students")
           .where({ profile_pic: url, account_id })
+          .first()
           .transacting(t);
         console.log("STUDENT AFTER FIRST FETCH", student);
         if (student.cloudinary_id) {
