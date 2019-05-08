@@ -116,6 +116,21 @@ router
     }
   });
 
+router
+  .route("/update/profile_picture/:url")
+  .delete(restricted(), async (req, res) => {
+    const account_id = req.token.subject;
+    const { url } = req.params;
+    try {
+      await actions.deleteProfilePicture(account_id, url);
+      res.status(204).end();
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Something went wrong removing the user image." });
+    }
+  });
+
 router.route("/contact-me/:id").post(async (req, res) => {
   const msg = req.body;
   const { id } = req.params;

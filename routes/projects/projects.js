@@ -251,7 +251,7 @@ function deleteProjectImage(project_id, url) {
               if (result) {
                 console.log("RESULT TRUE", result);
                 await db("project_media")
-                  .where({ url, project_id })
+                  .where({ media: url, project_id })
                   .del()
                   .transacting(t);
               } else {
@@ -262,7 +262,7 @@ function deleteProjectImage(project_id, url) {
           );
         } else {
           await db("project_media")
-            .where({ url, project_id })
+            .where({ media: url, project_id })
             .del()
             .transacting(t);
         }
