@@ -1,7 +1,9 @@
 const db = require("../../data/config");
+const cloudinary = require("cloudinary");
 
 module.exports = {
   createProject,
+  deleteProjectImage,
   getProjectCards,
   getProjectById,
   updateProject
@@ -86,8 +88,8 @@ function createProject(info) {
 
           project = {
             ...project,
-            media,
-            skills
+            project_media: media,
+            project_skills: skills
           };
           console.log("PROJECT AFTER CREATION", project);
         }
@@ -145,6 +147,15 @@ function getProjectById(id) {
           .join("accounts as a", "a.id", "s.account_id")
           .where({ "sp.project_id": project.id })
           .transacting(t);
+
+        const top_students = await db("top_projects as tp")
+          .select("s.profile_pic", "a.name", "s.id as student_id")
+          .join("students as s", "s.id", "tp.student_id")
+          .join("accounts as a", "a.id", "s.account_id")
+          .where({ "tp.project_id": project.id })
+          .transacting(t);
+
+        students = [...students, ...top_students];
       });
       resolve({ ...project, students });
     } catch (error) {
@@ -161,9 +172,9 @@ function updateProject(id, info) {
         Project {
 
         }
-        Media [
-
-        ]
+        Media {
+          link
+        }
         Skills [
 
         ]
@@ -183,16 +194,12 @@ function updateProject(id, info) {
 
         //Delete old media and insert if exists
         let media;
-        if (info.media && info.media.length) {
-          info.media = info.media.map(link => ({
-            project_id: id,
-            media: link
-          }));
+        if (info.media) {
+          info.media = {
+            ...info.media,
+            project_id: id
+          };
           console.log(info.media);
-          await db("project_media")
-            .where({ project_id: id })
-            .del()
-            .transacting(t);
           media = await db("project_media")
             .insert(info.media, "media")
             .transacting(t);
@@ -215,11 +222,58 @@ function updateProject(id, info) {
 
         updated = {
           ...project,
-          media,
-          skills
+          project_media: media,
+          project_skills: skills
         };
       });
       resolve(updated);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function deleteProjectImage(project_id, url) {
+  return new Promise(async (resolve, reject) => {
+    let project;
+    try {
+      await db.transaction(async t => {
+        project = await db("project_media")
+          .where({ media: url, project_id })
+          .first()
+          .transacting(t);
+        console.log("PROJECT AFTER FIRST FETCH", project);
+        if (project.cloudinary_id) {
+          console.log("PROJECT CLOUD ID TRUE");
+          new Promise(async (resolve, reject) => {
+            cloudinary.v2.uploader.destroy(
+              project.cloudinary_id,
+              async (error, result) => {
+                if (result) {
+                  console.log("RESULT TRUE", result);
+                  await db("project_media")
+                    .where({ media: url, project_id })
+                    .del()
+                    .transacting(t);
+                  resolve();
+                } else {
+                  console.log("ERROR IN CLOUD DELETE", error);
+                  reject(error);
+                }
+              }
+            );
+          });
+        } else if (project) {
+          await db("project_media")
+            .where({ media: url, project_id })
+            .del()
+            .transacting(t);
+        } else {
+          throw new Error("Project could not be located.");
+        }
+      });
+      resolve();
     } catch (error) {
       console.log(error);
       reject(error);

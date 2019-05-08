@@ -56,12 +56,12 @@ router
 
 router
   .route("/:id/media")
-  .put(restricted(), cloudParser.array("images", 3), async (req, res) => {
+  .put(restricted(), cloudParser.single("image"), async (req, res) => {
     const { id } = req.params;
     try {
-      if (req.files) {
+      if (req.file) {
         const info = {
-          media: req.files.map(file => file.url)
+          media: { media: req.file.url, cloudinary_id: req.file.public_id }
         };
         const updated = await actions.updateProject(id, info);
         res.status(200).json(updated);
@@ -74,3 +74,16 @@ router
         .json({ message: "Something went wrong uploading the picture." });
     }
   });
+
+router.route("/:id/media/remove").put(restricted(), async (req, res) => {
+  const { id } = req.params;
+  const { url } = req.body;
+  try {
+    await actions.deleteProjectImage(id, url);
+    res.status(204).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Something went wrong deleting the project image." });
+  }
+});
