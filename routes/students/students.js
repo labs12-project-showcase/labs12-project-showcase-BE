@@ -469,8 +469,8 @@ function updateStudent(account_id, info) {
         let desired_locations;
         if (info.desired_locations && info.desired_locations.length) {
           info.desired_locations = info.desired_locations.map(location => ({
-            student_id: student.id,
-            location
+            ...location,
+            student_id: student.id
           }));
           await db("desired_locations")
             .where({ student_id: student.id })
