@@ -246,7 +246,7 @@ function deleteProjectImage(project_id, url) {
         console.log("PROJECT AFTER FIRST FETCH", project);
         if (project.cloudinary_id) {
           console.log("PROJECT CLOUD ID TRUE");
-          cloudinary.v2.uploader.destroy(
+          await cloudinary.v2.uploader.destroy(
             project.cloudinary_id,
             async (error, result) => {
               if (result) {

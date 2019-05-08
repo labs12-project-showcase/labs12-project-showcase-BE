@@ -478,7 +478,7 @@ function deleteProfilePicture(account_id, url) {
         console.log("STUDENT AFTER FIRST FETCH", student);
         if (student.cloudinary_id) {
           console.log("STUDENT CLOUD ID TRUE");
-          cloudinary.v2.uploader.destroy(
+          await cloudinary.v2.uploader.destroy(
             student.cloudinary_id,
             async (error, result) => {
               if (result) {
