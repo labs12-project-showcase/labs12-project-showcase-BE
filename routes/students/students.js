@@ -477,8 +477,8 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          desired_locations = await db("desired_locations")
-            .insert(info.desired_locations, "location")
+          [desired_locations] = await db("desired_locations")
+            .insert(info.desired_locations, "*")
             .transacting(t);
         }
 
