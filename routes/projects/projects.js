@@ -243,28 +243,7 @@ function deleteProjectImage(project_id, url) {
           .where({ media: url, project_id })
           .first()
           .transacting(t);
-        console.log("PROJECT AFTER FIRST FETCH", project);
-        if (project.cloudinary_id) {
-          console.log("PROJECT CLOUD ID TRUE");
-          new Promise(async (resolve, reject) => {
-            cloudinary.v2.uploader.destroy(
-              project.cloudinary_id,
-              async (error, result) => {
-                if (result) {
-                  console.log("RESULT TRUE", result);
-                  await db("project_media")
-                    .where({ media: url, project_id })
-                    .del()
-                    .transacting(t);
-                  resolve();
-                } else {
-                  console.log("ERROR IN CLOUD DELETE", error);
-                  reject(error);
-                }
-              }
-            );
-          });
-        } else if (project) {
+        if (project) {
           await db("project_media")
             .where({ media: url, project_id })
             .del()
@@ -273,6 +252,25 @@ function deleteProjectImage(project_id, url) {
           throw new Error("Project could not be located.");
         }
       });
+      if (project.cloudinary_id) {
+        console.log("PROJECT CLOUD ID TRUE");
+        resolve(
+          new Promise((resolve, reject) => {
+            cloudinary.v2.uploader.destroy(
+              project.cloudinary_id,
+              (error, result) => {
+                if (result) {
+                  console.log("RESULT TRUE", result);
+                  resolve();
+                } else {
+                  console.log("ERROR IN CLOUD DELETE", error);
+                  reject(error);
+                }
+              }
+            );
+          })
+        );
+      }
       resolve();
     } catch (error) {
       console.log(error);
