@@ -480,7 +480,7 @@ function deleteProfilePicture(account_id, url) {
         if (student) {
           await db("students")
             .where({ profile_pic: url, account_id })
-            .del()
+            .update({ profile_pic: null, cloudinary_id: null })
             .transacting(t);
         } else {
           throw new Error("Student could not be located.");

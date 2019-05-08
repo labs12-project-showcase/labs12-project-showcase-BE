@@ -253,7 +253,6 @@ function deleteProjectImage(project_id, url) {
         }
       });
       if (project.cloudinary_id) {
-        console.log("PROJECT CLOUD ID TRUE");
         resolve(
           new Promise((resolve, reject) => {
             cloudinary.v2.uploader.destroy(
