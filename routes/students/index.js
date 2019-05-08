@@ -117,10 +117,10 @@ router
   });
 
 router
-  .route("/update/profile_picture/:url")
-  .delete(restricted(), async (req, res) => {
+  .route("/update/profile_picture/remove")
+  .put(restricted(), async (req, res) => {
     const account_id = req.token.subject;
-    const { url } = req.params;
+    const { url } = req.body;
     try {
       await actions.deleteProfilePicture(account_id, url);
       res.status(204).end();
