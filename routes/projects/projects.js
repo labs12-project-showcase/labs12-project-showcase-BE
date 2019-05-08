@@ -241,6 +241,7 @@ function deleteProjectImage(project_id, url) {
       await db.transaction(async t => {
         project = await db("project_media")
           .where({ media: url, project_id })
+          .first()
           .transacting(t);
         console.log("PROJECT AFTER FIRST FETCH", project);
         if (project.cloudinary_id) {
