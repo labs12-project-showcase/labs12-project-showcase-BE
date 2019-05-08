@@ -60,11 +60,7 @@ exports.up = function(knex, Promise) {
         .references("tracks.id")
         .onDelete("RESTRICT")
         .onUpdate("CASCADE");
-      tbl
-        .string("profile_pic")
-        .defaultTo(
-          "https://res.cloudinary.com/hirelambdastudents/image/upload/v1556814928/pictures/avatar.png"
-        );
+      tbl.string("profile_pic");
       tbl.string("cloudinary_id");
       tbl.string("location");
       tbl.string("lat");
