@@ -251,6 +251,7 @@ function getStudentProfile(account_id, update) {
           .where({ "s.account_id": account_id })
           .first()
           .transacting(t);
+        console.log("STUDENT IN FETCH PROFILE BY ID", student);
 
         endorsements = await db("endorsements as e")
           .select("e.message", "a.name")
@@ -289,7 +290,7 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
-    if (!student.name && !endorsements && !top_projects && !projects) {
+    if (!student.name) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
