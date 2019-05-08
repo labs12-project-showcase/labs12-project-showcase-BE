@@ -59,7 +59,7 @@ router
   .put(restricted(), cloudParser.single("image"), async (req, res) => {
     const { id } = req.params;
     try {
-      if (req.files) {
+      if (req.file) {
         const info = {
           media: { media: req.file.url }
         };
