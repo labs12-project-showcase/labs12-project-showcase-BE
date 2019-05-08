@@ -59,5 +59,4 @@ exports.seed = function(knex, Promise) {
           acclaim: ""
         },
       ]);
-    });
 };
