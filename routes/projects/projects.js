@@ -260,11 +260,13 @@ function deleteProjectImage(project_id, url) {
               }
             }
           );
-        } else {
+        } else if (project) {
           await db("project_media")
             .where({ media: url, project_id })
             .del()
             .transacting(t);
+        } else {
+          throw new Error("Project could not be located.");
         }
       });
       resolve();

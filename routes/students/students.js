@@ -492,11 +492,13 @@ function deleteProfilePicture(account_id, url) {
               }
             }
           );
-        } else {
+        } else if (student) {
           await db("students")
             .where({ profile_pic: url, account_id })
             .del()
             .transacting(t);
+        } else {
+          throw new Error("Student could not be located.");
         }
       });
       resolve();
