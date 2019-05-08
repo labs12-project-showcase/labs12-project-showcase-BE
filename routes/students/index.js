@@ -12,6 +12,17 @@ router.use(cors());
 
 module.exports = router;
 
+router.route("/cards/filter").get(async (req, res) => {
+  try {
+    students = await actions.getFilteredStudentCards(req.query);
+    res.status(200).json(students);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Something went wrong retrieving the student cards." });
+  }
+});
+
 router.route("/cards").get(async (req, res) => {
   try {
     students = await actions.getStudentCards();
