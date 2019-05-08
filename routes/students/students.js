@@ -108,17 +108,17 @@ function getStudentById(id) {
 
 function getFilteredStudentCards({ tracks, badge, within }) {
   // console.log('queries', tracks, badge, within);
-  let trackString = 'and (';
+  let trackString = "and (";
   if (tracks) {
-    let splitTracks = tracks.split('');
+    let splitTracks = tracks.split("");
     splitTracks.forEach((t, i) => {
       if (i === 0) {
-        trackString = trackString + 'track_id = ' + t;
+        trackString = trackString + "track_id = " + t;
       } else {
-        trackString = trackString + ' or track_id = ' + t;
+        trackString = trackString + " or track_id = " + t;
       }
     });
-    trackString = trackString + ')';
+    trackString = trackString + ")";
   }
   return new Promise(async (resolve, reject) => {
     try {
@@ -135,8 +135,8 @@ function getFilteredStudentCards({ tracks, badge, within }) {
           jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
           from accounts as a
           inner join students as s on s.account_id = a.id
-          ${ badge === 'true' ? "and acclaim != '' and acclaim is not null" : "" }
-          ${ tracks ? `${trackString}` : "" }
+          ${badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
+          ${tracks ? `${trackString}` : ""}
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
@@ -289,7 +289,7 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
-    if (!student && !endorsements && !top_projects && !projects) {
+    if (!student.name && !endorsements && !top_projects && !projects) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
@@ -542,6 +542,8 @@ function deleteProfilePicture(account_id, url) {
           throw new Error("Student could not be located.");
         }
       });
+      console.log("STUDENT AFTER TX", student);
+      console.log("STUDENT CLOUD ID", student.cloudinary_id);
       if (student.cloudinary_id) {
         resolve(
           new Promise((resolve, reject) => {
@@ -560,6 +562,7 @@ function deleteProfilePicture(account_id, url) {
           })
         );
       }
+      console.log("CLOUD ID WAS NOT TRUE");
       resolve();
     } catch (error) {
       console.log(error);
