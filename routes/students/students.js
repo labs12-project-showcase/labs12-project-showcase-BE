@@ -251,6 +251,7 @@ function getStudentProfile(account_id, update) {
           .where({ "s.account_id": account_id })
           .first()
           .transacting(t);
+        console.log("STUDENT IN FETCH PROFILE BY ID", student);
 
         endorsements = await db("endorsements as e")
           .select("e.message", "a.name")
@@ -289,7 +290,7 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
-    if (!student.name && !endorsements && !top_projects && !projects) {
+    if (!student.name) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
@@ -476,8 +477,8 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          desired_locations = await db("desired_locations")
-            .insert(info.desired_locations, "location")
+          [desired_locations] = await db("desired_locations")
+            .insert(info.desired_locations, "*")
             .transacting(t);
         }
 
@@ -545,6 +546,7 @@ function deleteProfilePicture(account_id, url) {
       console.log("STUDENT AFTER TX", student);
       console.log("STUDENT CLOUD ID", student.cloudinary_id);
       if (student.cloudinary_id) {
+        console.log("CLOUD ID IS TRUE!");
         resolve(
           new Promise((resolve, reject) => {
             cloudinary.v2.uploader.destroy(
