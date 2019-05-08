@@ -1,5 +1,6 @@
 const db = require("../../data/config");
 const axios = require("axios");
+const cloudinary = require("cloudinary");
 
 module.exports = {
   deleteProfilePicture,
