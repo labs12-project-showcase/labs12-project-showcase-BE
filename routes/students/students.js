@@ -114,10 +114,10 @@ function getStudentById(id) {
   });
 }
 
-function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
+function getFilteredStudentCards({ tracks, badge = null, within = null, lat = null, lon = null }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
-  if (tracks) {
+  if (tracks !== 'none') {
     let splitTracks = tracks.split("");
     splitTracks.forEach((t, i) => {
       if (i === 0) {
@@ -128,8 +128,6 @@ function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
     });
     trackString = trackString + ")";
   }
-
-
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -148,8 +146,8 @@ function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
           jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
           from accounts as a
           inner join students as s on s.account_id = a.id
-          ${badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
-          ${tracks ? `${trackString}` : ""}
+          ${ badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
+          ${ tracks === 'none' ? '' : `${trackString}` }
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
@@ -166,8 +164,13 @@ function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
             s.profile_pic,
             t.name`
       );
-      const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
-      resolve(studentsFilteredByLocation);
+      if (lat && lon && within) {
+        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
+        resolve(studentsFilteredByLocation);
+      } else {
+        resolve(students);
+      }
+
     } catch (error) {
       console.log(error);
       reject(error);
