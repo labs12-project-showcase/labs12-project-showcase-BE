@@ -62,8 +62,10 @@ router
       if (req.file) {
         const info = {
           // regex checks for `http:` and, if present, replaces with `https:`
-          media: { media: req.file.url.replace(/^http:/i, 'https:'),
-          cloudinary_id: req.file.public_id }
+          media: {
+            media: req.file.url.replace(/^http:/i, "https:"),
+            cloudinary_id: req.file.public_id
+          }
         };
         const updated = await actions.updateProject(id, info);
         res.status(200).json(updated);
@@ -90,7 +92,7 @@ router.route("/:id/media/remove").put(restricted(), async (req, res) => {
   }
 });
 
-router.route("/leave").put(restricted(), async (req, res) => {
+router.route("/:id/leave").put(restricted(), async (req, res) => {
   const info = req.body;
   try {
     await actions.leaveProject(info);
@@ -102,7 +104,7 @@ router.route("/leave").put(restricted(), async (req, res) => {
   }
 });
 
-router.route("/join").put(restricted(), async (req, res) => {
+router.route("/:id/join").put(restricted(), async (req, res) => {
   const info = req.body;
   try {
     await actions.joinProject(info);
