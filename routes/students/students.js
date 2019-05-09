@@ -46,7 +46,7 @@ function endorseStudent(account_id, to_id, message) {
 
 function getStudentById(id) {
   return new Promise(async (resolve, reject) => {
-    let student, endorsements, top_projects, projects;
+    let student, desired_locations, endorsements, top_projects, projects;
     try {
       await db.transaction(async t => {
         student = await db("students as s")
@@ -66,10 +66,15 @@ function getStudentById(id) {
           .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
-          .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
+          // .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
           .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.id": id })
           .first()
+          .transacting(t);
+
+        desired_locations = await db("desired_locations as dl")
+          .select("lat", "location", "lon")
+          .where({ "dl.student_id": id })
           .transacting(t);
 
         endorsements = await db("endorsements as e")
@@ -100,6 +105,7 @@ function getStudentById(id) {
     }
     resolve({
       ...student,
+      desired_locations,
       endorsements,
       top_projects,
       projects
@@ -223,6 +229,7 @@ function getStudentEmail(id) {
 function getStudentProfile(account_id, update) {
   return new Promise(async (resolve, reject) => {
     let student,
+      desired_locations,
       endorsements,
       top_projects,
       projects,
@@ -247,12 +254,17 @@ function getStudentProfile(account_id, update) {
           .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
-          .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
+          // .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
           .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.account_id": account_id })
           .first()
           .transacting(t);
         console.log("STUDENT IN FETCH PROFILE BY ID", student);
+
+        desired_locations = await db("desired_locations as dl")
+            .select("lat", "location", "lon")
+            .where({ "dl.student_id": student.id })
+            .transacting(t);
 
         endorsements = await db("endorsements as e")
           .select("e.message", "a.name")
@@ -301,6 +313,7 @@ function getStudentProfile(account_id, update) {
     }
     resolve({
       ...student,
+      desired_locations,
       endorsements,
       top_projects,
       projects,
@@ -478,7 +491,7 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          [desired_locations] = await db("desired_locations")
+          desired_locations = await db("desired_locations")
             .insert(info.desired_locations, "*")
             .transacting(t);
         }
