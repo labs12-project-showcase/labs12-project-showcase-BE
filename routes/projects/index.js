@@ -87,3 +87,27 @@ router.route("/:id/media/remove").put(restricted(), async (req, res) => {
       .json({ message: "Something went wrong deleting the project image." });
   }
 });
+
+router.route("/leave").put(restricted(), async (req, res) => {
+  const info = req.body;
+  try {
+    await actions.leaveProject(info);
+    res.status(200).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "There was an error leaving the project." });
+  }
+});
+
+router.route("/join").put(restricted(), async (req, res) => {
+  const info = req.body;
+  try {
+    await actions.joinProject(info);
+    res.status(200).end();
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "There was an error joining the project." });
+  }
+});
