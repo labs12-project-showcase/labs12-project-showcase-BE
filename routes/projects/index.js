@@ -85,7 +85,9 @@ router
     try {
       if (req.file) {
         const info = {
-          media: { media: req.file.url, cloudinary_id: req.file.public_id }
+          // regex checks for `http:` and, if present, replaces with `https:`
+          media: { media: req.file.url.replace(/^http:/i, 'https:'),
+          cloudinary_id: req.file.public_id }
         };
         const updated = await actions.updateProject(id, info);
         res.status(200).json(updated);
