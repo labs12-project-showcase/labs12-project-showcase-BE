@@ -1,6 +1,7 @@
 const db = require("../../data/config");
 const axios = require("axios");
 const cloudinary = require("cloudinary");
+const locationFilter = require("./studentsWithinDistance.js");
 
 module.exports = {
   deleteProfilePicture,
@@ -113,7 +114,7 @@ function getStudentById(id) {
   });
 }
 
-function getFilteredStudentCards({ tracks, badge, within }) {
+function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
   if (tracks) {
@@ -127,6 +128,9 @@ function getFilteredStudentCards({ tracks, badge, within }) {
     });
     trackString = trackString + ")";
   }
+
+
+
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -137,6 +141,8 @@ function getFilteredStudentCards({ tracks, badge, within }) {
           s.github,
           s.twitter,
           s.profile_pic,
+          s.lat,
+          s.lon,
           t.name as track,
           array_agg(distinct ts.skill) as top_skills,
           jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
@@ -160,7 +166,8 @@ function getFilteredStudentCards({ tracks, badge, within }) {
             s.profile_pic,
             t.name`
       );
-      resolve(students);
+      const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
+      resolve(studentsFilteredByLocation);
     } catch (error) {
       console.log(error);
       reject(error);
@@ -259,7 +266,7 @@ function getStudentProfile(account_id, update) {
           .where({ "s.account_id": account_id })
           .first()
           .transacting(t);
-        console.log("STUDENT IN FETCH PROFILE BY ID", student);
+        // console.log("STUDENT IN FETCH PROFILE BY ID", student);
 
         desired_locations = await db("desired_locations as dl")
           .select("lat", "location", "lon")
