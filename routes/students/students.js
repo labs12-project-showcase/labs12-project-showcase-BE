@@ -57,8 +57,8 @@ function getStudentById(id) {
             "t.name as track",
             db.raw("array_agg(distinct sk.skill) as skills"),
             db.raw("array_agg(distinct h.hobby) as hobbies"),
-            db.raw("array_agg(distinct ts.skill) as top_skills"),
-            db.raw("array_agg(distinct dl.location) as desired_locations")
+            db.raw("array_agg(distinct ts.skill) as top_skills")
+            //db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
@@ -245,8 +245,8 @@ function getStudentProfile(account_id, update) {
             "t.name as track",
             db.raw("array_agg(distinct sk.skill) as skills"),
             db.raw("array_agg(distinct h.hobby) as hobbies"),
-            db.raw("array_agg(distinct ts.skill) as top_skills"),
-            db.raw("array_agg(distinct dl.location) as desired_locations")
+            db.raw("array_agg(distinct ts.skill) as top_skills")
+            //db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
@@ -262,9 +262,9 @@ function getStudentProfile(account_id, update) {
         console.log("STUDENT IN FETCH PROFILE BY ID", student);
 
         desired_locations = await db("desired_locations as dl")
-            .select("lat", "location", "lon")
-            .where({ "dl.student_id": student.id })
-            .transacting(t);
+          .select("lat", "location", "lon")
+          .where({ "dl.student_id": student.id })
+          .transacting(t);
 
         endorsements = await db("endorsements as e")
           .select("e.message", "a.name")
