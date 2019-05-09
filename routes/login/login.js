@@ -15,16 +15,25 @@ function findUser(sub_id) {
 
 function registerUser(info) {
   return new Promise(async (resolve, reject) => {
+    let newUser;
     try {
       await db.transaction(async t => {
-        [account] = await db("accounts")
+        const [account] = await db("accounts")
           .insert(info, "*")
           .transacting(t);
+
         await db("students")
           .insert({ account_id: account.id })
           .transacting(t);
+
+        newUser = await db("accounts")
+          .select("accounts.*", "roles.role")
+          .innerJoin("roles", "accounts.role_id", "roles.id")
+          .where({ "accounts.id": account.id })
+          .first()
+          .transacting(t);
       });
-      resolve(account);
+      resolve(newUser);
     } catch (error) {
       console.log(error);
       reject(error);
