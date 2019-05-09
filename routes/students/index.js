@@ -113,7 +113,8 @@ router
       if (req.file && req.file.url) {
         const updated = await actions.updateStudent(account_id, {
           student: {
-            profile_pic: req.file.url,
+            // regex checks for `http:` and, if present, replaces with `https:`
+            profile_pic: req.file.url.replace(/^http:/i, 'https:'),
             cloudinary_id: req.file.public_id
           }
         });
