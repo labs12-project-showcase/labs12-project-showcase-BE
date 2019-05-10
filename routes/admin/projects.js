@@ -37,8 +37,8 @@ function getProjects() {
           "p.name",
           "p.short_description",
           "p.approved",
-          db.raw("array_agg(distinct sp.student_id) as student_ids"),
-          db.raw("array_agg(distinct a.name) as students")
+          db.raw("array_agg(sp.student_id) as student_ids"),
+          db.raw("array_agg(a.name) as students")
         )
         .leftOuterJoin("student_projects as sp", "sp.project_id", "p.id")
         .leftOuterJoin("students as s", "s.id", "sp.student_id")
