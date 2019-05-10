@@ -47,19 +47,20 @@ function getProjects() {
       //   .groupBy("p.id")
       //   .debug();
 
-      const projects = await db("projects as p")
-        .select(
-          "p.id",
-          "p.name",
-          "p.short_description",
-          "p.approved",
-          db.raw("array_agg((s.id, a.name)) as students")
-        )
-        .leftOuterJoin("student_projects as sp", "sp.project_id", "p.id")
-        .leftOuterJoin("top_projects as tp", "tp.project_id", "p.id")
-        .leftOuterJoin(db.raw("students as s on s.id = sp.student_id or s.id = tp.student_id"))
-        .leftOuterJoin("accounts as a", "a.id", "s.id")
-        .groupBy("p.id")
+      const { rows: projects } = await db.raw(`
+        select 
+        p.id, 
+        p.name, 
+        p.short_description, 
+        p.approved, 
+        jsonb_agg(jsonb_build_object('name', a.name, 'student_id', s.id)) as students 
+        from projects as p
+        left outer join student_projects as sp on sp.project_id = p.id
+        left outer join top_projects as tp on tp.project_id = p.id
+        left outer join students as s on s.id = sp.student_id or s.id = tp.student_id 
+        left outer join accounts as a on a.id = s.id 
+        group by p.id
+      `)
 
       // resolve(projects.map(project => {
       //   return {
