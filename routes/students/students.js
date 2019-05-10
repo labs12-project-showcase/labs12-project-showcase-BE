@@ -1,6 +1,7 @@
 const db = require("../../data/config");
 const axios = require("axios");
 const cloudinary = require("cloudinary");
+const locationFilter = require("./studentsWithinDistance.js");
 
 module.exports = {
   deleteProfilePicture,
@@ -111,10 +112,10 @@ function getStudentById(id) {
   });
 }
 
-function getFilteredStudentCards({ tracks, badge, within }) {
+function getFilteredStudentCards({ tracks, badge = null, within = null, lat = null, lon = null }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
-  if (tracks) {
+  if (tracks !== 'none') {
     let splitTracks = tracks.split("");
     splitTracks.forEach((t, i) => {
       if (i === 0) {
@@ -125,6 +126,7 @@ function getFilteredStudentCards({ tracks, badge, within }) {
     });
     trackString = trackString + ")";
   }
+
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -135,13 +137,15 @@ function getFilteredStudentCards({ tracks, badge, within }) {
           s.github,
           s.twitter,
           s.profile_pic,
+          s.lat,
+          s.lon,
           t.name as track,
           array_agg(distinct ts.skill) as top_skills,
           jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
           from accounts as a
           inner join students as s on s.account_id = a.id
-          ${badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
-          ${tracks ? `${trackString}` : ""}
+          ${ badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
+          ${ tracks === 'none' ? '' : `${trackString}` }
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
@@ -158,7 +162,13 @@ function getFilteredStudentCards({ tracks, badge, within }) {
             s.profile_pic,
             t.name`
       );
-      resolve(students);
+      if (lat && lon && within) {
+        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
+        resolve(studentsFilteredByLocation);
+      } else {
+        resolve(students);
+      }
+
     } catch (error) {
       console.log(error);
       reject(error);
@@ -255,7 +265,7 @@ function getStudentProfile(account_id, update) {
           .where({ "s.account_id": account_id })
           .first()
           .transacting(t);
-        console.log("STUDENT IN FETCH PROFILE BY ID", student);
+        // console.log("STUDENT IN FETCH PROFILE BY ID", student);
 
         desired_locations = await db("desired_locations as dl")
           .select("lat", "location", "lon")

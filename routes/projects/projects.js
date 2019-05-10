@@ -6,6 +6,8 @@ module.exports = {
   deleteProjectImage,
   getProjectCards,
   getProjectById,
+  joinProject,
+  leaveProject,
   updateProject
 };
 
@@ -272,6 +274,72 @@ function deleteProjectImage(project_id, url) {
           })
         );
       }
+      resolve();
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function joinProject(info) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await db.transaction(async t => {
+        const top_projects = await db("top_projects")
+          .where({ student_id: info.student_id })
+          .transacting(t);
+
+        if (top_projects && top_projects.length < 3) {
+          await db("top_projects")
+            .insert(info)
+            .transacting(t);
+        } else {
+          await db("student_projects")
+            .insert(info)
+            .transacting(t);
+        }
+      });
+      resolve();
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function leaveProject(info) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await db.transaction(async t => {
+        const top_projects = await db("top_projects")
+          .where({ project_id: info.project_id })
+          .transacting(t);
+
+        const projects = await db("student_projects")
+          .where({ project_id: info.project_id })
+          .transacting(t);
+
+        if (
+          (top_projects ? top_projects.length : 0) +
+            (projects ? projects.length : 0) ===
+          1
+        ) {
+          await db("projects")
+            .where({ id: info.project_id })
+            .del()
+            .transacting(t);
+        } else {
+          await db("top_projects")
+            .where(info)
+            .del()
+            .transacting(t);
+          await db("student_projects")
+            .where(info)
+            .del()
+            .transacting(t);
+        }
+      });
       resolve();
     } catch (error) {
       console.log(error);
