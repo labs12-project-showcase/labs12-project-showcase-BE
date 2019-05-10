@@ -15,7 +15,7 @@ function deleteProject(id) {
 function updateProject(id, info) {
     return new Promise(async (resolve, reject) => {
       try {
-        const res = await db("projects")
+        const [ res ] = await db("projects")
           .where({ id })
           .update(info, "*");
   
