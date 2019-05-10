@@ -31,31 +31,49 @@ function updateProject(id, info) {
 function getProjects() {
   return new Promise(async (resolve, reject) => {
     try {
+      // const projects = await db("projects as p")
+      //   .select(
+      //     "p.id",
+      //     "p.name",
+      //     "p.short_description",
+      //     "p.approved",
+      //     db.raw("array_agg(sp.student_id) as student_ids"),
+      //     db.raw("array_agg(a.name) as students")
+      //   )
+      //   .leftOuterJoin("student_projects as sp", "sp.project_id", "p.id")
+      //   .leftOuterJoin("top_projects as tp", "tp.project_id", "p.id")
+      //   .leftOuterJoin("students as s", "s.id", "sp.student_id")
+      //   .leftOuterJoin("accounts as a", "a.id", "s.id")
+      //   .groupBy("p.id")
+      //   .debug();
+
       const projects = await db("projects as p")
         .select(
           "p.id",
           "p.name",
           "p.short_description",
           "p.approved",
-          db.raw("array_agg(sp.student_id) as student_ids"),
-          db.raw("array_agg(a.name) as students")
+          db.raw("array_agg((s.id, a.name)) as students")
         )
         .leftOuterJoin("student_projects as sp", "sp.project_id", "p.id")
-        .leftOuterJoin("students as s", "s.id", "sp.student_id")
+        .leftOuterJoin("top_projects as tp", "tp.project_id", "p.id")
+        .leftOuterJoin(db.raw("students as s on s.id = sp.student_id or s.id = tp.student_id"))
         .leftOuterJoin("accounts as a", "a.id", "s.id")
-        .groupBy("p.id");
+        .groupBy("p.id")
 
-      resolve(projects.map(project => {
-        return {
-          ...project, 
-          students: project.students.map((student, index) => {
-          return {
-            name: student,
-            student_id: project.student_ids[index]
-          }
-        })}
-        }
-      ))
+      // resolve(projects.map(project => {
+      //   return {
+      //     ...project, 
+      //     students: project.students.map((student, index) => {
+      //     return {
+      //       name: student,
+      //       student_id: project.student_ids[index]
+      //     }
+      //   })}
+      //   }
+      // ))
+
+      resolve(projects);
     } catch (error) {
       console.log(error);
       reject(error);
@@ -63,42 +81,44 @@ function getProjects() {
   });
 }
 
-
 // function getProjects() {
 //   return new Promise(async (resolve, reject) => {
-//     let project, students;
 //     try {
 //       await db.transaction(async t => {
-//         projects = await db("projects as p")
-//           .select(
-//             "p.id",
-//             "p.name",
-//             "p.short_description",
-//             "p.approved",
-//             db.raw("array_agg(distinct sp.student_id) as student_ids"),
-//             db.raw("array_agg(distinct a.name) as students")
-//           )
-//           .leftOuterJoin("student_projects as sp", "sp.project_id", "p.id")
-//           .leftOuterJoin("students as s", "s.id", "sp.student_id")
-//           .leftOuterJoin("accounts as a", "a.id", "s.id")
-//           .groupBy("p.id")
-//           .transacting(t);
-
-//         students = await db("student_projects as sp")
-//           .select("s.profile_pic", "a.name", "s.id as student_id")
-//           .join("students as s", "s.id", "sp.student_id")
-//           .join("accounts as a", "a.id", "s.account_id")
-//           .transacting(t);
-
+//       const projects = await db("projects as p")
+//         .select(
+//           "p.id",
+//           "p.name",
+//           "p.short_description",
+//           "p.approved",
+//           db.raw("array_agg(sp.student_id) as student_ids"),
+//           db.raw("array_agg(a.name) as students")
+//         )
+//         .leftOuterJoin("student_projects as sp", "sp.project_id", "p.id")
+//         .leftOuterJoin("top_projects as tp", "tp.project_id", "p.id")
+//         .leftOuterJoin("students as s", "s.id", "sp.student_id")
+//         .leftOuterJoin("accounts as a", "a.id", "s.id")
+//         .groupBy("p.id")
+//         .transacting(t);
+        
 //         const top_students = await db("top_projects as tp")
 //           .select("s.profile_pic", "a.name", "s.id as student_id")
 //           .join("students as s", "s.id", "tp.student_id")
 //           .join("accounts as a", "a.id", "s.account_id")
 //           .transacting(t);
-
-//         students = [...students, ...top_students];
 //       });
-//       resolve({ ...projects, students });
+//       resolve(projects.map(project => {
+//         return {
+//           ...project,
+//           ...top_students, 
+//           students: project.students.map((student, index) => {
+//           return {
+//             name: student,
+//             student_id: project.student_ids[index]
+//           }
+//         })}
+//         }
+//       ))
 //     } catch (error) {
 //       console.log(error);
 //       reject(error);
