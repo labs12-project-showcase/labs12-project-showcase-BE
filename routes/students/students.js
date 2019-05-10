@@ -59,7 +59,6 @@ function getStudentById(id) {
             db.raw("array_agg(distinct sk.skill) as skills"),
             db.raw("array_agg(distinct h.hobby) as hobbies"),
             db.raw("array_agg(distinct ts.skill) as top_skills")
-            //db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
@@ -67,7 +66,6 @@ function getStudentById(id) {
           .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
-          // .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
           .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.id": id })
           .first()
@@ -256,7 +254,6 @@ function getStudentProfile(account_id, update) {
             db.raw("array_agg(distinct sk.skill) as skills"),
             db.raw("array_agg(distinct h.hobby) as hobbies"),
             db.raw("array_agg(distinct ts.skill) as top_skills")
-            //db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
@@ -264,7 +261,6 @@ function getStudentProfile(account_id, update) {
           .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
-          // .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
           .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.account_id": account_id })
           .first()
@@ -501,9 +497,13 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          desired_locations = await db("desired_locations")
-            .insert(info.desired_locations, "*")
-            .transacting(t);
+          if (info.desired_locations[0].location) {
+            desired_locations = await db("desired_locations")
+              .insert(info.desired_locations, "*")
+              .transacting(t);
+          } else {
+            desired_locations = [];
+          }
         }
 
         let top_projects;

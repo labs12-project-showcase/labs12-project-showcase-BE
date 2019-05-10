@@ -115,6 +115,8 @@ function getProjectCards() {
           db.raw("array_agg(distinct pm.media) as project_media")
         )
         .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
+        .limit(8)
+        .orderBy("p.id", "desc")
         .groupBy("p.id");
 
       resolve(projects);
