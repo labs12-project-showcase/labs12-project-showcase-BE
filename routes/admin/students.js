@@ -40,7 +40,7 @@ function getStudents() {
 function updateStudent(id, info) {
   return new Promise(async (resolve, reject) => {
     try {
-      const res = await db("students")
+      const [ res ] = await db("students")
         .where({ id })
         .update(info, "*");
 
