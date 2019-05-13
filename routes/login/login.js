@@ -23,7 +23,6 @@ function registerUser(info) {
           .transacting(t);
 
         if (info.role_id === 1) {
-          console.log('creating a student');
             await db("students")
             .insert({ account_id: account.id })
             .transacting(t);
