@@ -112,10 +112,16 @@ function getStudentById(id) {
   });
 }
 
-function getFilteredStudentCards({ tracks, badge = null, within = null, lat = null, lon = null }) {
+function getFilteredStudentCards({
+  tracks,
+  badge = null,
+  within = null,
+  lat = null,
+  lon = null
+}) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
-  if (tracks !== 'none') {
+  if (tracks !== "none") {
     let splitTracks = tracks.split("");
     splitTracks.forEach((t, i) => {
       if (i === 0) {
@@ -164,12 +170,16 @@ function getFilteredStudentCards({ tracks, badge = null, within = null, lat = nu
             t.name`
       );
       if (lat && lon && within) {
-        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
+        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(
+          students,
+          lat,
+          lon,
+          within
+        );
         resolve(studentsFilteredByLocation);
       } else {
         resolve(students);
       }
-
     } catch (error) {
       console.log(error);
       reject(error);
@@ -477,8 +487,15 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          top_projects = await db("top_projects")
-            .insert(info.top_projects, "*")
+          await db("top_projects")
+            .insert(info.top_projects)
+            .transacting(t);
+          top_projects = await db("top_projects as tp")
+            .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
+            .join("projects as p", "p.id", "tp.project_id")
+            .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
+            .where({ "tp.student_id": student.id })
+            .groupBy("p.id")
             .transacting(t);
         }
 
@@ -488,9 +505,16 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          projects = await db("student_projects")
-            .insert(info.projects, "*")
+          await db("student_projects")
+            .insert(info.projects)
             .transacting(t);
+          projects = await db("student_projects as sp")
+            .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
+            .join("projects as p", "p.id", "sp.project_id")
+            .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
+            .where({ "sp.student_id": student.id })
+            .transacting(t)
+            .groupBy("p.id");
         }
 
         updated = {
