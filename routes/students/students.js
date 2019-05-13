@@ -59,7 +59,6 @@ function getStudentById(id) {
             db.raw("array_agg(distinct sk.skill) as skills"),
             db.raw("array_agg(distinct h.hobby) as hobbies"),
             db.raw("array_agg(distinct ts.skill) as top_skills")
-            //db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
@@ -67,7 +66,6 @@ function getStudentById(id) {
           .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
-          // .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
           .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.id": id })
           .first()
@@ -114,10 +112,10 @@ function getStudentById(id) {
   });
 }
 
-function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
+function getFilteredStudentCards({ tracks, badge = null, within = null, lat = null, lon = null }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
-  if (tracks) {
+  if (tracks !== 'none') {
     let splitTracks = tracks.split("");
     splitTracks.forEach((t, i) => {
       if (i === 0) {
@@ -128,8 +126,6 @@ function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
     });
     trackString = trackString + ")";
   }
-
-
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -148,8 +144,8 @@ function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
           jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
           from accounts as a
           inner join students as s on s.account_id = a.id
-          ${badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
-          ${tracks ? `${trackString}` : ""}
+          ${ badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
+          ${ tracks === 'none' ? '' : `${trackString}` }
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
@@ -166,8 +162,13 @@ function getFilteredStudentCards({ tracks, badge, within, lat, lon }) {
             s.profile_pic,
             t.name`
       );
-      const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
-      resolve(studentsFilteredByLocation);
+      if (lat && lon && within) {
+        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(students, lat, lon, within);
+        resolve(studentsFilteredByLocation);
+      } else {
+        resolve(students);
+      }
+
     } catch (error) {
       console.log(error);
       reject(error);
@@ -253,7 +254,6 @@ function getStudentProfile(account_id, update) {
             db.raw("array_agg(distinct sk.skill) as skills"),
             db.raw("array_agg(distinct h.hobby) as hobbies"),
             db.raw("array_agg(distinct ts.skill) as top_skills")
-            //db.raw("array_agg(distinct dl.location) as desired_locations")
           )
           .leftOuterJoin("accounts as a", "a.id", "s.account_id")
           .leftOuterJoin("cohorts as c", "c.id", "s.cohort_id")
@@ -261,7 +261,6 @@ function getStudentProfile(account_id, update) {
           .leftOuterJoin("student_skills as sk", "sk.student_id", "s.id")
           .leftOuterJoin("hobbies as h", "h.student_id", "s.id")
           .leftOuterJoin("top_skills as ts", "ts.student_id", "s.id")
-          // .leftOuterJoin("desired_locations as dl", "dl.student_id", "s.id")
           .groupBy("a.name", "s.id", "c.cohort_name", "t.name")
           .where({ "s.account_id": account_id })
           .first()
@@ -498,9 +497,13 @@ function updateStudent(account_id, info) {
             .where({ student_id: student.id })
             .del()
             .transacting(t);
-          desired_locations = await db("desired_locations")
-            .insert(info.desired_locations, "*")
-            .transacting(t);
+          if (info.desired_locations[0].location) {
+            desired_locations = await db("desired_locations")
+              .insert(info.desired_locations, "*")
+              .transacting(t);
+          } else {
+            desired_locations = [];
+          }
         }
 
         let top_projects;
