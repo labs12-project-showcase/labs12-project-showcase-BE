@@ -120,7 +120,6 @@ function getFilteredStudentCards({
   tracks,
   within = null,
 }) {
-  // console.log('queries', tracks, badge, within);
   let trackString = "and (";
   if (tracks !== "none") {
     let splitTracks = tracks.split("");
@@ -173,7 +172,6 @@ function getFilteredStudentCards({
             t.name`
       );
       if (lat && lon && within) {
-        // console.log('students', students)
         const studentsFilteredByLocation = locationFilter.asTheCrowFlies(
           students,
           lat,
