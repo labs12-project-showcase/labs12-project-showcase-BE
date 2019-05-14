@@ -58,7 +58,7 @@ function updateAccount(id, info) {
           "roles.role"
         )
         .innerJoin("roles", "accounts.role_id", "roles.id")
-        .where({ id })
+        .where({ "accounts.id": id })
         .first()
       resolve(result);
     } catch (error) {
