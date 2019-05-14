@@ -17,7 +17,7 @@ module.exports = {
 function asTheCrowFlies(array, originLat, originLon, miles, filterDesLoc) {
   const toKilometer = miles * 1609.344;
 
-  return array.flatMap(item => {
+  const withinDistance = array.map(item => {
     if (item.lat && item.lon) {
       const distance = haversineFormula(
         item.lat,
@@ -25,29 +25,37 @@ function asTheCrowFlies(array, originLat, originLon, miles, filterDesLoc) {
         originLat,
         originLon
       );
-      if (distance <= toKilometer) {
-        return [{ ...item, distance }];
-      } else if (
-        filterDesLoc &&
-        item.desired_locations &&
-        item.desired_locations.length
-      ) {
-        let match = false;
-        const desiredDistance = item.desired_locations.map(item => {
-          const distance = haversineFormula(
-            item.lat,
-            item.lon,
-            originLat,
-            originLon
-          );
-          if (distance <= toKilometer) {
-            match = true;
-          }
-          return { ...item, distance };
-        });
-        return match ? [{ ...item, desired_locations: desiredDistance }] : [];
-      }
-      return []; // eliminates the `item` from returned array
+      console.log('distance', distance);
+      return { ...item, distance: distance };
+    }
+    else {
+      return { ...item, distance: null };
+    }
+  });
+
+  return withinDistance.filter(item => {
+    console.log('item and toKilometer', item, toKilometer);
+    if (item.distance !== null && (item.distance <= toKilometer)) {
+      return true;
+    }
+    else if (filterDesLoc && item.desired_locations && item.desired_locations.length) {
+      let match = false;
+      const desiredDistance = item.desired_locations.map(item => {
+        const distance = haversineFormula(
+          item.lat,
+          item.lon,
+          originLat,
+          originLon
+        );
+        if (distance <= toKilometer) {
+          match = true;
+        }
+        return { ...item, distance };
+      });
+      return match;
+    }
+    else {
+      return false;
     }
   });
 }
