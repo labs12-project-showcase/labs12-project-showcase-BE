@@ -19,6 +19,7 @@ function getAccounts() {
       await db.transaction(async t => {
         accounts = await db("accounts")
           .select(
+            "accounts.email",
             "accounts.id",
             "accounts.name",
             "accounts.role_id",
