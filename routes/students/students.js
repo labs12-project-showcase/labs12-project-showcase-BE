@@ -113,11 +113,12 @@ function getStudentById(id) {
 }
 
 function getFilteredStudentCards({
-  tracks,
   badge = null,
-  within = null,
+  filterDesLoc = false,
   lat = null,
-  lon = null
+  lon = null,
+  tracks,
+  within = null,
 }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
@@ -174,7 +175,8 @@ function getFilteredStudentCards({
           students,
           lat,
           lon,
-          within
+          within,
+          filterDesLoc,
         );
         resolve(studentsFilteredByLocation);
       } else {
