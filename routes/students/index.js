@@ -104,6 +104,20 @@ router.route("/update").put(restricted(), async (req, res) => {
   }
 });
 
+router.route("/delete").delete(restricted(), async (req, res) => {
+  const account_id = req.token.subject;
+  actions.deleteStudent(account_id)
+  .then(res => {
+    res.status(202).json({ message: "Delete successful." });
+  })
+  .catch(err => {
+    res.status(500).json({
+      message: "Something went wrong deleting the student.",
+      err
+    });
+  })
+});
+
 router
   .route("/update/profile_picture")
   .put(restricted(), cloudParser.single("image"), async (req, res) => {
