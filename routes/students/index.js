@@ -104,7 +104,8 @@ router.route("/update").put(restricted(), async (req, res) => {
   }
 });
 
-router.route("/delete").delete(restricted(), async (req, res) => {
+router.route("/delete").delete(restricted(), (req, res) => {
+  console.log('deleting, here is token', req.token);
   const account_id = req.token.subject;
   actions.deleteStudent(account_id)
   .then(res => {

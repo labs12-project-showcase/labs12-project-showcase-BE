@@ -16,9 +16,9 @@ module.exports = {
   deleteStudent
 };
 
-function deleteStudent(account_id) {
+function deleteStudent(id) {
   return db("accounts")
-    .where({ id: account_id })
+    .where({ id })
     .del();
 }
 
