@@ -153,6 +153,7 @@ function getFilteredStudentCards({
           inner join students as s on s.account_id = a.id
           and approved = true
           ${ badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
+          ${ filterDesLoc === "true" ? "distinct jsonb_build_object('lat', dl.lat, 'location', dl.location, 'lon', dl.lon) as desired_locations" : ''}
           ${ tracks === 'none' ? '' : `${trackString}` }
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
