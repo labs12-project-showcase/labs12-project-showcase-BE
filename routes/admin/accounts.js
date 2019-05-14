@@ -49,7 +49,18 @@ function updateAccount(id, info) {
       const [account] = await db("accounts")
         .where({ id })
         .update(info, ["id", "name", "role_id"]);
-      resolve(account);
+        const result = await db("accounts")
+        .select(
+          "accounts.email",
+          "accounts.id",
+          "accounts.name",
+          "accounts.role_id",
+          "roles.role"
+        )
+        .innerJoin("roles", "accounts.role_id", "roles.id")
+        .where({ id })
+        .first()
+      resolve(result);
     } catch (error) {
       reject(error);
     }
