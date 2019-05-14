@@ -1,32 +1,63 @@
+module.exports = {
+  asTheCrowFlies
+};
+
 /**
  * Takes an Array of objects with `latitude` and `longitude`
  * properties, and returns an Array of objects that are within
  * `miles` of the `origin`.
+ * If `filterDesLoc` is `true`, will check the array of locations
+ * in the `desired_locations` property of each object in the `array`.
  * @param {Array} array
- * @param {*} origin Object literal with origin's latitude and longitude: {lat: 123.12, lon: 123.12}
- * @param {Number} miles
+ * @param {Number} originLat Origin latitude
+ * @param {Number} originLon Origin longitude
+ * @param {Number} miles Max distance in miles between points
+ * @param {Boolean} filterDesLoc Filter by desired location
  */
-
-module.exports = {
-  asTheCrowFlies
-}
-
-function asTheCrowFlies(array, originLat, originLon, miles) {
+function asTheCrowFlies(array, originLat, originLon, miles, filterDesLoc) {
   const toKilometer = miles * 1609.344;
-  return array.filter(
-    item => {
-      if (item.lat && item.lon) {
-        const result = haversineFormula(
+
+  const withinDistance = array.map(item => {
+    if (item.lat && item.lon) {
+      const distance = haversineFormula(
+        item.lat,
+        item.lon,
+        originLat,
+        originLon
+      );
+      console.log('distance', distance);
+      return { ...item, distance: distance };
+    }
+    else {
+      return { ...item, distance: null };
+    }
+  });
+
+  return withinDistance.filter(item => {
+    console.log('item and toKilometer', item, toKilometer);
+    if (item.distance !== null && (item.distance <= toKilometer)) {
+      return true;
+    }
+    else if (filterDesLoc && item.desired_locations && item.desired_locations.length) {
+      let match = false;
+      const desiredDistance = item.desired_locations.map(item => {
+        const distance = haversineFormula(
           item.lat,
           item.lon,
           originLat,
           originLon
-        ) <= toKilometer;
-        return result;
-      }
+        );
+        if (distance <= toKilometer) {
+          match = true;
+        }
+        return { ...item, distance };
+      });
+      return match;
+    }
+    else {
       return false;
     }
-  );
+  });
 }
 
 /**
@@ -56,5 +87,5 @@ function haversineFormula(lat1, lon1, lat2, lon2) {
 }
 
 function toRadians(degrees) {
-  return degrees * Math.PI / 180;
+  return (degrees * Math.PI) / 180;
 }

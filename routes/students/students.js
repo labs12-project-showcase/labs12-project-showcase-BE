@@ -113,11 +113,12 @@ function getStudentById(id) {
 }
 
 function getFilteredStudentCards({
-  tracks,
   badge = null,
-  within = null,
+  filterDesLoc = false,
   lat = null,
-  lon = null
+  lon = null,
+  tracks,
+  within = null,
 }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
@@ -147,16 +148,18 @@ function getFilteredStudentCards({
           s.lon,
           t.name as track,
           array_agg(distinct ts.skill) as top_skills,
-          jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects
+          jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects,
+          ${ filterDesLoc === "true" ? "jsonb_agg(distinct jsonb_build_object('lat', dl.lat, 'location', dl.location, 'lon', dl.lon)) as desired_locations" : null}
           from accounts as a
           inner join students as s on s.account_id = a.id
           and approved = true
-          ${ badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
+          ${ badge === "true" ? "and acclaim != '' and acclaim is not null" : ''}
           ${ tracks === 'none' ? '' : `${trackString}` }
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
           left outer join projects as p on p.id = tp.project_id
+          left outer join desired_locations as dl on s.id = dl.student_id
           left outer join project_media as pm on pm.id = (
             select project_media.id from project_media where project_media.project_id = p.id limit 1
           )
@@ -170,11 +173,13 @@ function getFilteredStudentCards({
             t.name`
       );
       if (lat && lon && within) {
+        // console.log('students', students)
         const studentsFilteredByLocation = locationFilter.asTheCrowFlies(
           students,
           lat,
           lon,
-          within
+          within,
+          filterDesLoc,
         );
         resolve(studentsFilteredByLocation);
       } else {
