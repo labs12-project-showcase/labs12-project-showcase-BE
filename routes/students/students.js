@@ -125,7 +125,10 @@ function getFilteredStudentCards({
   lat = null,
   lon = null,
   tracks,
-  within = null
+  within = null,
+  search = null,
+  nameWeight = 20,
+  skillWeight = 5
 }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
@@ -148,9 +151,9 @@ function getFilteredStudentCards({
           s.id,
           a.name,
           s.location,
-          s.profile_pic,
           s.lat,
           s.lon,
+          s.profile_pic,
           t.name as track,
           array_agg(distinct ts.skill) as top_skills,
           jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects,
@@ -166,12 +169,20 @@ function getFilteredStudentCards({
           ${tracks === "none" ? "" : `${trackString}`}
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
+          left outer join top_skills as ts_alias on s.id = ts.student_id
           left outer join top_projects as tp on tp.student_id = s.id
           left outer join projects as p on p.id = tp.project_id
           left outer join desired_locations as dl on s.id = dl.student_id
           left outer join project_media as pm on pm.id = (
             select project_media.id from project_media where project_media.project_id = p.id limit 1
           )
+          ${
+            search
+              ? `where LEVENSHTEIN(LOWER(a.name), '${search}') < ${nameWeight}
+              or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}') < ${skillWeight}
+              `
+              : ""
+          }
           group by
             s.id,
             a.name,

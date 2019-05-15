@@ -108,7 +108,7 @@ exports.up = function(knex, Promise) {
         .unsigned()
         .references("students.id")
         .notNullable()
-        .onDelete("RESTRICT")
+        .onDelete("CASCADE")
         .onUpdate("CASCADE");
       tbl.string("location");
       tbl.string("lat");
