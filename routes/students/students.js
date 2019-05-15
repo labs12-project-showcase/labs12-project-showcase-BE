@@ -12,8 +12,15 @@ module.exports = {
   getStudentEmail,
   // getStudentLocations,
   getStudentProfile,
-  updateStudent
+  updateStudent,
+  deleteStudent
 };
+
+function deleteStudent(id) {
+  return db("accounts")
+    .where({ id })
+    .del();
+}
 
 function endorseStudent(account_id, to_id, message) {
   return new Promise(async (resolve, reject) => {
