@@ -177,7 +177,7 @@ function getFilteredStudentCards({
           ${
             search
               ? `where METAPHONE(LOWER(a.name), 2) = METAPHONE('${search}', 2)
-              or METAPHONE(LOWER(ts_alias.skill), 2) = METAPHONE('${search}', 2)
+              or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}')  < 5
               `
               : ""
           }
