@@ -126,7 +126,7 @@ function getFilteredStudentCards({
   lon = null,
   tracks,
   within = null,
-  search = null,
+  search = null
 }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
@@ -176,8 +176,8 @@ function getFilteredStudentCards({
           )
           ${
             search
-              ? `where METAPHONE(LOWER(a.name), 2) = ${search}
-              or METAPHONE(LOWER(ts_alias.skill), 2) = ${search}
+              ? `where METAPHONE(LOWER(a.name), 2) = METAPHONE('${search}', 2)
+              or METAPHONE(LOWER(ts_alias.skill), 2) = METAPHONE('${search}', 2)
               `
               : ""
           }
