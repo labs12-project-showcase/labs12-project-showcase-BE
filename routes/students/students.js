@@ -141,7 +141,7 @@ function getFilteredStudentCards({
     });
     trackString = trackString + ")";
   }
-
+  //or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}')  < 5
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -176,9 +176,7 @@ function getFilteredStudentCards({
           )
           ${
             search
-              ? `where METAPHONE(LOWER(a.name), 2) = METAPHONE('${search}', 2)
-              or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}')  < 5
-              `
+              ? `where METAPHONE(LOWER(a.name), 2) = METAPHONE('${search}', 2)`
               : ""
           }
           group by
