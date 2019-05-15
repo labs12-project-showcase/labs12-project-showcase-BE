@@ -127,8 +127,6 @@ function getFilteredStudentCards({
   tracks,
   within = null,
   search = null,
-  nameWeight = 20,
-  skillWeight = 5
 }) {
   // console.log('queries', tracks, badge, within);
   let trackString = "and (";
@@ -178,8 +176,8 @@ function getFilteredStudentCards({
           )
           ${
             search
-              ? `where LEVENSHTEIN(LOWER(a.name), '${search}') < ${nameWeight}
-              or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}') < ${skillWeight}
+              ? `where METAPHONE(LOWER(a.name), 2) = ${search}
+              or METAPHONE(LOWER(ts_alias.skill), 2) = ${search}
               `
               : ""
           }
