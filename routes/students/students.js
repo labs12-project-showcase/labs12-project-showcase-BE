@@ -13,14 +13,15 @@ module.exports = {
   // getStudentLocations,
   getStudentProfile,
   updateStudent,
-  deleteStudent
+  deleteStudent,
+  // deleteAuth0User
 };
 
-function deleteStudent(id) {
-  return db("accounts")
-    .where({ id })
-    .del();
-}
+// function deleteStudent(id) {
+//   return db("accounts")
+//     .where({ id })
+//     .del();
+// }
 
 function endorseStudent(account_id, to_id, message) {
   return new Promise(async (resolve, reject) => {
@@ -364,6 +365,44 @@ function getGitHubInfo(account_id, options) {
       };
 
       resolve({ ...info, ...options, exists: false });
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
+function deleteStudent(account_id) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      //GET MGR API ACCESS TOKEN
+      const body = {
+        client_id: process.env.OAUTH_CLIENT_ID,
+        client_secret: process.env.OAUTH_CLIENT_SECRET,
+        audience: process.env.OAUTH_MGR_API,
+        grant_type: "client_credentials"
+      };
+      const {
+        data: { access_token }
+      } = await axios.post(process.env.OAUTH_TOKEN_API, body);
+
+      //GET ACCOUNT SUB_ID
+      const { sub_id } = await db("accounts")
+        .select("sub_id")
+        .where({ id: account_id })
+        .first();
+
+      //DELETE USER ON AUTH0
+      const api = process.env.OAUTH_MGR_API;
+      const url = `${api}users/${sub_id}`;
+      const headers = {
+        authorization: `Bearer ${access_token}`
+      };
+
+      const deleteResponse = await axios.delete(url, { headers });
+      const finished = await db("accounts").where({ id: account_id }).del();
+
+      resolve(finished);
     } catch (error) {
       console.log(error);
       reject(error);
