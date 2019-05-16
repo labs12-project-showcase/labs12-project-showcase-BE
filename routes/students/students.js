@@ -10,10 +10,10 @@ module.exports = {
   getStudentCards,
   getFilteredStudentCards,
   getStudentEmail,
-  // getStudentLocations,
+  getStudentLocations,
   getStudentProfile,
   updateStudent,
-  deleteStudent,
+  deleteStudent
   // deleteAuth0User
 };
 
@@ -400,7 +400,9 @@ function deleteStudent(account_id) {
       };
 
       const deleteResponse = await axios.delete(url, { headers });
-      const finished = await db("accounts").where({ id: account_id }).del();
+      const finished = await db("accounts")
+        .where({ id: account_id })
+        .del();
 
       resolve(finished);
     } catch (error) {
@@ -411,11 +413,13 @@ function deleteStudent(account_id) {
 }
 
 //BACK BURNER
-// function getStudentLocations() {
-//   return db.raw(
-//     "select a.first_name, a.last_name, s.location, s.profile_pic from students as s join accounts as a on a.id = s.account_id where s.location is not null"
-//   );
-// }
+function getStudentLocations() {
+  return db("students")
+    .select("location", "lat as latitude", "lon as longitude")
+    .whereNotNull("location")
+    .whereNotNull("lat")
+    .whereNotNull("lon");
+}
 
 function updateStudent(account_id, info) {
   return new Promise(async (resolve, reject) => {

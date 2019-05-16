@@ -77,16 +77,16 @@ router.route("/profile/:id").get(async (req, res) => {
   }
 });
 
-// router.route("/locations").get(async (req, res) => {
-//   try {
-//     const { rows: locations } = await actions.getStudentLocations();
-//     res.status(200).json(locations);
-//   } catch (error) {
-//     res.status(500).json({
-//       message: "Soemthing went wrong retrieving the student locations."
-//     });
-//   }
-// });
+router.route("/locations").get(async (req, res) => {
+  try {
+    const { rows: locations } = await actions.getStudentLocations();
+    res.status(200).json(locations);
+  } catch (error) {
+    res.status(500).json({
+      message: "Something went wrong retrieving the student locations."
+    });
+  }
+});
 
 router.route("/update").put(restricted(), async (req, res) => {
   const updates = req.body;
@@ -106,18 +106,21 @@ router.route("/update").put(restricted(), async (req, res) => {
 
 router.route("/delete").delete(restricted(), (req, res) => {
   const account_id = req.token.subject;
-  actions.deleteStudent(account_id)
-  .then(deleteResponse => {
-    console.log('delete successful');
-    res.status(202).json({ message: "Delete successful.", response: deleteResponse });
-  })
-  .catch(err => {
-    console.log('delete student error', err);
-    res.status(500).json({
-      message: "Something went wrong deleting the student.",
-      error: err
+  actions
+    .deleteStudent(account_id)
+    .then(deleteResponse => {
+      console.log("delete successful");
+      res
+        .status(202)
+        .json({ message: "Delete successful.", response: deleteResponse });
+    })
+    .catch(err => {
+      console.log("delete student error", err);
+      res.status(500).json({
+        message: "Something went wrong deleting the student.",
+        error: err
+      });
     });
-  })
 });
 
 router
@@ -129,7 +132,7 @@ router
         const updated = await actions.updateStudent(account_id, {
           student: {
             // regex checks for `http:` and, if present, replaces with `https:`
-            profile_pic: req.file.url.replace(/^http:/i, 'https:'),
+            profile_pic: req.file.url.replace(/^http:/i, "https:"),
             cloudinary_id: req.file.public_id
           }
         });
