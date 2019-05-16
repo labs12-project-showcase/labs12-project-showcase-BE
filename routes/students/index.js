@@ -79,7 +79,7 @@ router.route("/profile/:id").get(async (req, res) => {
 
 router.route("/locations").get(async (req, res) => {
   try {
-    const { rows: locations } = await actions.getStudentLocations();
+    const locations = await actions.getStudentLocations();
     res.status(200).json(locations);
   } catch (error) {
     res.status(500).json({
