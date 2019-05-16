@@ -400,7 +400,6 @@ function deleteStudent(account_id) {
       };
 
       const deleteResponse = await axios.delete(url, { headers });
-
       const finished = await db("accounts").where({ id: account_id }).del();
 
       resolve(finished);
