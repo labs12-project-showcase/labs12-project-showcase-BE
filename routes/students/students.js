@@ -10,7 +10,7 @@ module.exports = {
   getStudentCards,
   getFilteredStudentCards,
   getStudentEmail,
-  // getStudentLocations,
+  getStudentLocations,
   getStudentProfile,
   updateStudent,
   deleteStudent
@@ -372,11 +372,11 @@ function getGitHubInfo(account_id, options) {
 }
 
 //BACK BURNER
-// function getStudentLocations() {
-//   return db.raw(
-//     "select a.first_name, a.last_name, s.location, s.profile_pic from students as s join accounts as a on a.id = s.account_id where s.location is not null"
-//   );
-// }
+function getStudentLocations() {
+  return db.raw(
+    "select a.name, s.location, s.profile_pic from students as s join accounts as a on a.id = s.account_id where s.location is not null"
+  );
+}
 
 function updateStudent(account_id, info) {
   return new Promise(async (resolve, reject) => {
