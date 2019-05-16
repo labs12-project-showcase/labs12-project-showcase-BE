@@ -108,8 +108,8 @@ router.route("/delete").delete(restricted(), (req, res) => {
   console.log('deleting, here is token', req.token);
   const account_id = req.token.subject;
   actions.deleteStudent(account_id)
-  .then(student => {
-    res.status(202).json({ message: "Delete successful." });
+  .then(deleteResponse => {
+    res.status(202).json({ message: "Delete successful.", response: deleteResponse });
   })
   .catch(err => {
     console.log('delete student', err);
