@@ -105,19 +105,17 @@ router.route("/update").put(restricted(), async (req, res) => {
 });
 
 router.route("/delete").delete(restricted(), (req, res) => {
-  console.log("deleting, here is token", req.token);
   const account_id = req.token.subject;
-  actions
-    .deleteStudent(account_id)
-    .then(student => {
-      res.status(202).json({ message: "Delete successful." });
-    })
-    .catch(err => {
-      console.log("delete student", err);
-      res.status(500).json({
-        message: "Something went wrong deleting the student.",
-        error: err
-      });
+  actions.deleteStudent(account_id)
+  .then(deleteResponse => {
+    console.log('delete successful');
+    res.status(202).json({ message: "Delete successful.", response: deleteResponse });
+  })
+  .catch(err => {
+    console.log('delete student error', err);
+    res.status(500).json({
+      message: "Something went wrong deleting the student.",
+      error: err
     });
 });
 
