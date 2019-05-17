@@ -415,7 +415,7 @@ function deleteStudent(account_id) {
 //BACK BURNER
 function getStudentLocations() {
   return db("students")
-    .select("distinct location", "lat as latitude", "lon as longitude")
+    .select("location", "lat as latitude", "lon as longitude")
     .whereNotNull("location")
     .whereNotNull("lat")
     .whereNotNull("lon");
