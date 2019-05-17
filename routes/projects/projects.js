@@ -116,8 +116,8 @@ function getProjectCards() {
         )
         .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
         .limit(8)
-        .orderBy("p.id", "desc")
         .where({ "p.approved": true })
+        .orderBy("p.id", "desc")
         .groupBy("p.id");
 
       resolve(projects);
