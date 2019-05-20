@@ -25,7 +25,7 @@ router.route("/cards/filter").get(async (req, res) => {
 
 router.route("/cards").get(async (req, res) => {
   try {
-    students = await actions.getStudentCards();
+    students = await actions.getStudentCards(req.query);
     res.status(200).json(students);
   } catch (error) {
     res
