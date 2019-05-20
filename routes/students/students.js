@@ -189,7 +189,8 @@ function getFilteredStudentCards({
             s.github,
             s.twitter,
             s.profile_pic,
-            t.name`
+            t.name
+            limit 8`
       );
       if (lat && lon && within) {
         // console.log('students', students)
@@ -215,7 +216,7 @@ function getStudentCards() {
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
-        "select s.id, a.name, s.location, s.profile_pic, t.name as track, array_agg(distinct ts.skill) as top_skills, jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects from accounts as a inner join students as s on s.account_id = a.id and approved = true left outer join tracks as t on s.track_id = t.id left outer join top_skills as ts on s.id = ts.student_id left outer join top_projects as tp on tp.student_id = s.id left outer join projects as p on p.id = tp.project_id left outer join project_media as pm on pm.id = ( select project_media.id from project_media where project_media.project_id = p.id limit 1) where p.approved=true group by s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name"
+        "select s.id, a.name, s.location, s.profile_pic, t.name as track, array_agg(distinct ts.skill) as top_skills, jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects from accounts as a inner join students as s on s.account_id = a.id and approved = true left outer join tracks as t on s.track_id = t.id left outer join top_skills as ts on s.id = ts.student_id left outer join top_projects as tp on tp.student_id = s.id left outer join projects as p on p.id = tp.project_id and p.approved = true left outer join project_media as pm on pm.id = ( select project_media.id from project_media where project_media.project_id = p.id limit 1) group by s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name limit 8"
       );
       resolve(students);
     } catch (error) {
