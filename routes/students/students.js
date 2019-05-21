@@ -153,6 +153,7 @@ function getFilteredStudentCards({
           s.location,
           s.lat,
           s.lon,
+          s.highlighted,
           s.profile_pic,
           s.desired_title,
           coalesce(jsonb_agg(distinct ts.skill) filter (where ts.skill is not null), '[]') as top_skills,
