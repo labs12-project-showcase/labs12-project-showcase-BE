@@ -153,6 +153,7 @@ function getFilteredStudentCards({
           s.location,
           s.lat,
           s.lon,
+          s.highlighted,
           s.profile_pic,
           t.name as track,
           array_agg(distinct ts.skill) as top_skills,
