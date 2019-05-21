@@ -155,8 +155,9 @@ function getFilteredStudentCards({
           s.lon,
           s.highlighted,
           s.profile_pic,
-          t.name as track,
-          array_agg(distinct ts.skill) as top_skills,
+          s.desired_title,
+          coalesce(jsonb_agg(distinct ts.skill) filter (where ts.skill is not null), '[]') as top_skills,
+          coalesce(jsonb_agg(distinct sk.skill) filter (where sk.skill is not null), '[]') as skills, 
           coalesce(jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) 
           filter (where p.name is not null), '[]') as top_projects,
           ${
@@ -171,6 +172,7 @@ function getFilteredStudentCards({
           ${tracks === "none" ? "" : `${trackString}`}
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
+          left outer join student_skills as sk on s.id = sk.student_id
           left outer join top_skills as ts_alias on s.id = ts_alias.student_id
           left outer join top_projects as tp on tp.student_id = s.id
           left outer join projects as p on p.id = tp.project_id
@@ -223,16 +225,20 @@ function getStudentCards({ offset = 0 }) {
         `select s.id,
           a.name,
           s.location,
+          s.lat,
+          s.lon,
           s.profile_pic, 
-          t.name as track, 
-          array_agg(distinct ts.skill) as top_skills, 
+          s.desired_title, 
+          coalesce(jsonb_agg(distinct ts.skill) filter (where ts.skill is not null), '[]') as top_skills,
+          coalesce(jsonb_agg(distinct sk.skill) filter (where sk.skill is not null), '[]') as skills, 
           coalesce(jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media))
           filter (where p.name is not null), '[]') 
           as top_projects from accounts as a 
           inner join students as s on s.account_id = a.id and approved = true 
           left outer join tracks as t on s.track_id = t.id 
           left outer join top_skills as ts on s.id = ts.student_id 
-          left outer join top_projects as tp on tp.student_id = s.id 
+          left outer join student_skills as sk on s.id = sk.student_id
+          left outer join top_projects as tp on tp.student_id = s.id
           left outer join projects as p on p.id = tp.project_id and p.approved = true 
           left outer join project_media as pm on pm.id = ( select project_media.id from project_media where project_media.project_id = p.id limit 1) 
           group by s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name 
@@ -329,7 +335,7 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
-    if (!student.name) {
+    if (!student.github) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
