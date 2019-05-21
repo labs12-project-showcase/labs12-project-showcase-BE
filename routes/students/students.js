@@ -334,7 +334,7 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
-    if (!student.name) {
+    if (!student.github) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
