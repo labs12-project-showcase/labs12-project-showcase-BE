@@ -1,7 +1,6 @@
 const db = require("../../data/config");
 const axios = require("axios");
 const cloudinary = require("cloudinary");
-const locationFilter = require("./studentsWithinDistance.js");
 
 module.exports = {
   deleteProfilePicture,
@@ -144,6 +143,39 @@ function getFilteredStudentCards({
     trackString = trackString + ")";
   }
 
+  const locQuery = lat && lon && within;
+  function determineQuery() {
+    if (locQuery) {
+      const dlString = `
+                      point(${lon}, ${lat}) <@> 
+                      point(to_number(dl.lon, '99G999D9S'), to_number(dl.lat, '99G999D9S')) 
+                      < ${within}`;
+      const locString = `
+                        point(${lon}, ${lat}) <@> 
+                        point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) 
+                        < ${within}`;
+      if (filterDesLoc) {
+        if (search) {
+          return `and ${dlString} or ${locString}`;
+        } else if (!search) {
+          return `where ${dlString} or ${locString}`;
+        }
+      } else if (filterDesLoc === false) {
+        if (search) {
+          return `and ${locString}`;
+        } else if (!search) {
+          return `where ${locString}`;
+        }
+      }
+    } else {
+      return "";
+    }
+  }
+  const des_loc_query_no_search =
+    lat && lon && within && filterDesLoc === "true" && !search;
+  const des_loc_query_with_search =
+    lat && lon && within && filterDesLoc === "true" && search;
+
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -168,11 +200,6 @@ function getFilteredStudentCards({
           from accounts as a
           inner join students as s on s.account_id = a.id
           and approved = true
-          ${
-            lat && lon && within
-              ? `and (point(${lon}, ${lat}) <@> point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) < ${within})`
-              : ""
-          }
           ${badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
           ${tracks === "none" ? "" : `${trackString}`}
           left outer join tracks as t on s.track_id = t.id
@@ -192,6 +219,7 @@ function getFilteredStudentCards({
               or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}') < 4`
               : ""
           }
+          ${determineQuery()}
           group by
             s.id,
             a.name,
