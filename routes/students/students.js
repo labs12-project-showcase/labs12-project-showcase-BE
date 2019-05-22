@@ -1,7 +1,6 @@
 const db = require("../../data/config");
 const axios = require("axios");
 const cloudinary = require("cloudinary");
-const locationFilter = require("./studentsWithinDistance.js");
 
 module.exports = {
   deleteProfilePicture,
