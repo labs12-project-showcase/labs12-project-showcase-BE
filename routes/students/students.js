@@ -146,36 +146,25 @@ function getFilteredStudentCards({
   const locQuery = lat && lon && within;
   function determineQuery() {
     if (locQuery) {
+      const dlString = `
+                      point(${lon}, ${lat}) <@> 
+                      point(to_number(dl.lon, '99G999D9S'), to_number(dl.lat, '99G999D9S')) 
+                      < ${within}`;
+      const locString = `
+                        point(${lon}, ${lat}) <@> 
+                        point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) 
+                        < ${within}`;
       if (filterDesLoc) {
         if (search) {
-          return `and 
-          point(${lon}, ${lat}) <@> 
-          point(to_number(dl.lon, '99G999D9S'), to_number(dl.lat, '99G999D9S')) 
-          < ${within} 
-          or 
-          point(${lon}, ${lat}) <@> 
-          point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) 
-          < ${within}
-          `;
+          return `and ${dlString} or ${locString}`;
         } else if (!search) {
-          return `where 
-          point(${lon}, ${lat}) <@> 
-          point(to_number(dl.lon, '99G999D9S'), to_number(dl.lat, '99G999D9S')) 
-          < ${within}
-          or 
-          point(${lon}, ${lat}) <@> 
-          point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) 
-          < ${within}`;
+          return `where ${dlString} or ${locString}`;
         }
       } else if (filterDesLoc === false) {
         if (search) {
-          return `and  
-          point(${lon}, ${lat}) <@> 
-          point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) < ${within}`;
+          return `and ${locString}`;
         } else if (!search) {
-          return `where 
-          point(${lon}, ${lat}) <@> 
-          point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) < ${within}`;
+          return `where ${locString}`;
         }
       }
     } else {
