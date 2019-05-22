@@ -168,6 +168,11 @@ function getFilteredStudentCards({
           from accounts as a
           inner join students as s on s.account_id = a.id
           and approved = true
+          ${
+            lat && lon && within
+              ? `and (point(${lon}, ${lat}) <@> point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) < ${within})`
+              : ""
+          }
           ${badge === "true" ? "and acclaim != '' and acclaim is not null" : ""}
           ${tracks === "none" ? "" : `${trackString}`}
           left outer join tracks as t on s.track_id = t.id
@@ -193,24 +198,11 @@ function getFilteredStudentCards({
             s.linkedin,
             s.github,
             s.twitter,
-            s.profile_pic,
-            t.name
+            s.profile_pic
             limit 8
             offset ${offset}`
       );
-      if (lat && lon && within) {
-        // console.log('students', students)
-        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(
-          students,
-          lat,
-          lon,
-          within,
-          filterDesLoc
-        );
-        resolve(studentsFilteredByLocation);
-      } else {
-        resolve(students);
-      }
+      resolve(students);
     } catch (error) {
       console.log(error);
       reject(error);
