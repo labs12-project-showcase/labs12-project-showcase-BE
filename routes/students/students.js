@@ -388,7 +388,8 @@ function getGitHubInfo(account_id, options) {
         name: data.name,
         github: data.html_url,
         location: data.location,
-        about: data.bio
+        about: data.bio,
+        id: account_id
       };
 
       resolve({ ...info, ...options, exists: false });
