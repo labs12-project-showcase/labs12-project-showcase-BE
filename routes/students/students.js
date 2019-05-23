@@ -359,7 +359,8 @@ function getStudentProfile(account_id, update) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
-          cohort_options
+          cohort_options,
+          id: student.id
         })
       );
     }
@@ -408,8 +409,7 @@ function getGitHubInfo(account_id, options) {
         name: data.name,
         github: data.html_url,
         location: data.location,
-        about: data.bio,
-        id: account_id
+        about: data.bio
       };
 
       resolve({ ...info, ...options, exists: false });
