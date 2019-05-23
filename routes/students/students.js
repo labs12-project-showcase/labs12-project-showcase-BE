@@ -1,7 +1,6 @@
 const db = require("../../data/config");
 const axios = require("axios");
 const cloudinary = require("cloudinary");
-const locationFilter = require("./studentsWithinDistance.js");
 
 module.exports = {
   deleteProfilePicture,
@@ -144,6 +143,39 @@ function getFilteredStudentCards({
     trackString = trackString + ")";
   }
 
+  const locQuery = lat && lon && within;
+  function determineQuery() {
+    if (locQuery) {
+      const dlString = `
+                      point(${lon}, ${lat}) <@> 
+                      point(to_number(dl.lon, '99G999D9S'), to_number(dl.lat, '99G999D9S')) 
+                      < ${within}`;
+      const locString = `
+                        point(${lon}, ${lat}) <@> 
+                        point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) 
+                        < ${within}`;
+      if (filterDesLoc) {
+        if (search) {
+          return `and ${dlString} or ${locString}`;
+        } else if (!search) {
+          return `where ${dlString} or ${locString}`;
+        }
+      } else if (filterDesLoc === false) {
+        if (search) {
+          return `and ${locString}`;
+        } else if (!search) {
+          return `where ${locString}`;
+        }
+      }
+    } else {
+      return "";
+    }
+  }
+  const des_loc_query_no_search =
+    lat && lon && within && filterDesLoc === "true" && !search;
+  const des_loc_query_with_search =
+    lat && lon && within && filterDesLoc === "true" && search;
+
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -187,30 +219,18 @@ function getFilteredStudentCards({
               or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}') < 4`
               : ""
           }
+          ${determineQuery()}
           group by
             s.id,
             a.name,
             s.linkedin,
             s.github,
             s.twitter,
-            s.profile_pic,
-            t.name
+            s.profile_pic
             limit 8
             offset ${offset}`
       );
-      if (lat && lon && within) {
-        // console.log('students', students)
-        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(
-          students,
-          lat,
-          lon,
-          within,
-          filterDesLoc
-        );
-        resolve(studentsFilteredByLocation);
-      } else {
-        resolve(students);
-      }
+      resolve(students);
     } catch (error) {
       console.log(error);
       reject(error);
