@@ -1,7 +1,6 @@
 const db = require("../../data/config");
 const axios = require("axios");
 const cloudinary = require("cloudinary");
-const locationFilter = require("./studentsWithinDistance.js");
 
 module.exports = {
   deleteProfilePicture,
@@ -10,10 +9,18 @@ module.exports = {
   getStudentCards,
   getFilteredStudentCards,
   getStudentEmail,
-  // getStudentLocations,
+  getStudentLocations,
   getStudentProfile,
-  updateStudent
+  updateStudent,
+  deleteStudent
+  // deleteAuth0User
 };
+
+// function deleteStudent(id) {
+//   return db("accounts")
+//     .where({ id })
+//     .del();
+// }
 
 function endorseStudent(account_id, to_id, message) {
   return new Promise(async (resolve, reject) => {
@@ -87,7 +94,7 @@ function getStudentById(id) {
           .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
           .join("projects as p", "p.id", "tp.project_id")
           .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
-          .where({ "tp.student_id": id })
+          .where({ "tp.student_id": id, "p.approved": true })
           .groupBy("p.id")
           .transacting(t);
 
@@ -95,7 +102,7 @@ function getStudentById(id) {
           .select("p.*", db.raw("array_agg(distinct pm.media) as media"))
           .join("projects as p", "p.id", "sp.project_id")
           .leftOuterJoin("project_media as pm", "pm.project_id", "p.id")
-          .where({ "sp.student_id": id })
+          .where({ "sp.student_id": id, "p.approved": true })
           .transacting(t)
           .groupBy("p.id");
       });
@@ -118,7 +125,9 @@ function getFilteredStudentCards({
   lat = null,
   lon = null,
   tracks,
-  within = null
+  within = null,
+  search = null,
+  offset = 0
 }) {
   let trackString = "and (";
   if (tracks !== "none") {
@@ -133,6 +142,39 @@ function getFilteredStudentCards({
     trackString = trackString + ")";
   }
 
+  const locQuery = lat && lon && within;
+  function determineQuery() {
+    if (locQuery) {
+      const dlString = `
+                      point(${lon}, ${lat}) <@> 
+                      point(to_number(dl.lon, '99G999D9S'), to_number(dl.lat, '99G999D9S')) 
+                      < ${within}`;
+      const locString = `
+                        point(${lon}, ${lat}) <@> 
+                        point(to_number(s.lon, '99G999D9S'), to_number(s.lat, '99G999D9S')) 
+                        < ${within}`;
+      if (filterDesLoc) {
+        if (search) {
+          return `and ${dlString} or ${locString}`;
+        } else if (!search) {
+          return `where ${dlString} or ${locString}`;
+        }
+      } else if (filterDesLoc === false) {
+        if (search) {
+          return `and ${locString}`;
+        } else if (!search) {
+          return `where ${locString}`;
+        }
+      }
+    } else {
+      return "";
+    }
+  }
+  const des_loc_query_no_search =
+    lat && lon && within && filterDesLoc === "true" && !search;
+  const des_loc_query_with_search =
+    lat && lon && within && filterDesLoc === "true" && search;
+
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
@@ -140,12 +182,15 @@ function getFilteredStudentCards({
           s.id,
           a.name,
           s.location,
-          s.profile_pic,
           s.lat,
           s.lon,
-          t.name as track,
-          array_agg(distinct ts.skill) as top_skills,
-          jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects,
+          s.highlighted,
+          s.profile_pic,
+          s.desired_title,
+          coalesce(jsonb_agg(distinct ts.skill) filter (where ts.skill is not null), '[]') as top_skills,
+          coalesce(jsonb_agg(distinct sk.skill) filter (where sk.skill is not null), '[]') as skills, 
+          coalesce(jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) 
+          filter (where p.name is not null), '[]') as top_projects,
           ${
             filterDesLoc === "true"
               ? "jsonb_agg(distinct jsonb_build_object('lat', dl.lat, 'location', dl.location, 'lon', dl.lon)) as desired_locations"
@@ -158,33 +203,33 @@ function getFilteredStudentCards({
           ${tracks === "none" ? "" : `${trackString}`}
           left outer join tracks as t on s.track_id = t.id
           left outer join top_skills as ts on s.id = ts.student_id
+          left outer join student_skills as sk on s.id = sk.student_id
+          left outer join top_skills as ts_alias on s.id = ts_alias.student_id
           left outer join top_projects as tp on tp.student_id = s.id
           left outer join projects as p on p.id = tp.project_id
+          and p.approved = true
           left outer join desired_locations as dl on s.id = dl.student_id
           left outer join project_media as pm on pm.id = (
             select project_media.id from project_media where project_media.project_id = p.id limit 1
           )
+          ${
+            search
+              ? `where METAPHONE(LOWER(a.name), 2) = METAPHONE('${search}', 2)
+              or LEVENSHTEIN(LOWER(ts_alias.skill), '${search}') < 4`
+              : ""
+          }
+          ${determineQuery()}
           group by
             s.id,
             a.name,
             s.linkedin,
             s.github,
             s.twitter,
-            s.profile_pic,
-            t.name`
+            s.profile_pic
+            limit 8
+            offset ${offset}`
       );
-      if (lat && lon && within) {
-        const studentsFilteredByLocation = locationFilter.asTheCrowFlies(
-          students,
-          lat,
-          lon,
-          within,
-          filterDesLoc
-        );
-        resolve(studentsFilteredByLocation);
-      } else {
-        resolve(students);
-      }
+      resolve(students);
     } catch (error) {
       console.log(error);
       reject(error);
@@ -192,11 +237,31 @@ function getFilteredStudentCards({
   });
 }
 
-function getStudentCards() {
+function getStudentCards({ offset = 0 }) {
   return new Promise(async (resolve, reject) => {
     try {
       const { rows: students } = await db.raw(
-        "select s.id, a.name, s.location, s.profile_pic, t.name as track, array_agg(distinct ts.skill) as top_skills, jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media)) as top_projects from accounts as a inner join students as s on s.account_id = a.id and approved = true left outer join tracks as t on s.track_id = t.id left outer join top_skills as ts on s.id = ts.student_id left outer join top_projects as tp on tp.student_id = s.id left outer join projects as p on p.id = tp.project_id left outer join project_media as pm on pm.id = ( select project_media.id from project_media where project_media.project_id = p.id limit 1)group by s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name"
+        `select s.id,
+          a.name,
+          s.location,
+          s.lat,
+          s.lon,
+          s.profile_pic, 
+          s.desired_title, 
+          coalesce(jsonb_agg(distinct ts.skill) filter (where ts.skill is not null), '[]') as top_skills,
+          coalesce(jsonb_agg(distinct sk.skill) filter (where sk.skill is not null), '[]') as skills, 
+          coalesce(jsonb_agg(distinct jsonb_build_object('name', p.name, 'project_id', p.id, 'media', pm.media))
+          filter (where p.name is not null), '[]') 
+          as top_projects from accounts as a 
+          inner join students as s on s.account_id = a.id and approved = true 
+          left outer join tracks as t on s.track_id = t.id 
+          left outer join top_skills as ts on s.id = ts.student_id 
+          left outer join student_skills as sk on s.id = sk.student_id
+          left outer join top_projects as tp on tp.student_id = s.id
+          left outer join projects as p on p.id = tp.project_id and p.approved = true 
+          left outer join project_media as pm on pm.id = ( select project_media.id from project_media where project_media.project_id = p.id limit 1) 
+          group by s.id, a.name, s.linkedin, s.github, s.twitter, s.profile_pic, t.name 
+          limit 8 offset ${offset}`
       );
       resolve(students);
     } catch (error) {
@@ -289,7 +354,7 @@ function getStudentProfile(account_id, update) {
       console.log(error);
       reject(error);
     }
-    if (!student.name) {
+    if (!student.github) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
@@ -353,12 +418,54 @@ function getGitHubInfo(account_id, options) {
   });
 }
 
+function deleteStudent(account_id) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      //GET MGR API ACCESS TOKEN
+      const body = {
+        client_id: process.env.OAUTH_CLIENT_ID,
+        client_secret: process.env.OAUTH_CLIENT_SECRET,
+        audience: process.env.OAUTH_MGR_API,
+        grant_type: "client_credentials"
+      };
+      const {
+        data: { access_token }
+      } = await axios.post(process.env.OAUTH_TOKEN_API, body);
+
+      //GET ACCOUNT SUB_ID
+      const { sub_id } = await db("accounts")
+        .select("sub_id")
+        .where({ id: account_id })
+        .first();
+
+      //DELETE USER ON AUTH0
+      const api = process.env.OAUTH_MGR_API;
+      const url = `${api}users/${sub_id}`;
+      const headers = {
+        authorization: `Bearer ${access_token}`
+      };
+
+      const deleteResponse = await axios.delete(url, { headers });
+      const finished = await db("accounts")
+        .where({ id: account_id })
+        .del();
+
+      resolve(finished);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
+
 //BACK BURNER
-// function getStudentLocations() {
-//   return db.raw(
-//     "select a.first_name, a.last_name, s.location, s.profile_pic from students as s join accounts as a on a.id = s.account_id where s.location is not null"
-//   );
-// }
+function getStudentLocations() {
+  return db("students")
+    .select("location", "lat as latitude", "lon as longitude")
+    .whereNotNull("location")
+    .whereNotNull("lat")
+    .whereNotNull("lon");
+}
 
 function updateStudent(account_id, info) {
   return new Promise(async (resolve, reject) => {

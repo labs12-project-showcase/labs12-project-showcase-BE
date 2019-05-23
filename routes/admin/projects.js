@@ -1,32 +1,31 @@
 const db = require("../../data/config");
 
 module.exports = {
-    deleteProject,
-    updateProject,
-    getProjects
+  deleteProject,
+  updateProject,
+  getProjects
 };
 
 function deleteProject(id) {
-    return db("projects")
-      .where({ id })
-      .del();
+  return db("projects")
+    .where({ id })
+    .del();
 }
 
 function updateProject(id, info) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const [ res ] = await db("projects")
-          .where({ id })
-          .update(info, "*");
-  
-        resolve(res);
-      } catch (error) {
-        console.log(error);
-        reject(error);
-      }
-    });
-}
+  return new Promise(async (resolve, reject) => {
+    try {
+      const [res] = await db("projects")
+        .where({ id })
+        .update(info, "*");
 
+      resolve(res);
+    } catch (error) {
+      console.log(error);
+      reject(error);
+    }
+  });
+}
 
 function getProjects() {
   return new Promise(async (resolve, reject) => {
@@ -42,9 +41,9 @@ function getProjects() {
         left outer join student_projects as sp on sp.project_id = p.id
         left outer join top_projects as tp on tp.project_id = p.id
         left outer join students as s on s.id = sp.student_id or s.id = tp.student_id 
-        left outer join accounts as a on a.id = s.id 
+        left outer join accounts as a on a.id = s.account_id 
         group by p.id
-      `)
+      `);
 
       resolve(projects);
     } catch (error) {

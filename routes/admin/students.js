@@ -19,6 +19,7 @@ function getStudents() {
         .select(
           "a.name",
           "s.graduated",
+          "s.highlighted",
           "s.hired",
           "s.approved",
           "t.name as track",
