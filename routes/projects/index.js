@@ -96,7 +96,7 @@ router.route("/:id/leave").put(restricted(), async (req, res) => {
   const info = req.body;
   try {
     await actions.leaveProject(info);
-    res.status(200).end();
+    res.status(204).end();
   } catch (error) {
     res
       .status(500)
@@ -108,7 +108,7 @@ router.route("/:id/join").put(restricted(), async (req, res) => {
   const info = req.body;
   try {
     await actions.joinProject(info);
-    res.status(200).end();
+    res.status(204).end();
   } catch (error) {
     res
       .status(500)
