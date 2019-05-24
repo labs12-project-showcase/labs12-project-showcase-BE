@@ -358,7 +358,8 @@ function getStudentProfile(account_id, update) {
       resolve(
         getGitHubInfo(account_id, {
           track_options,
-          cohort_options
+          cohort_options,
+          id: student.id
         })
       );
     }
