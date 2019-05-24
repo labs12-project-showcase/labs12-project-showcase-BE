@@ -89,7 +89,7 @@ router
 
     try {
       await resources[req.params.resource].remove(id);
-      res.status(200).end();
+      res.status(204).end();
     } catch (error) {
       res.status(500).json({
         message: `Something went wrong deleting the ${req.params.resource}.`

@@ -129,7 +129,6 @@ function getFilteredStudentCards({
   search = null,
   offset = 0
 }) {
-  // console.log('queries', tracks, badge, within);
   let trackString = "and (";
   if (tracks !== "none") {
     let splitTracks = tracks.split("");

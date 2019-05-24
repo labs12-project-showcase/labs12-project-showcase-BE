@@ -173,7 +173,7 @@ router.route("/contact-me/:id").post(async (req, res) => {
       throw new Error("Email not found!");
     }
     const success = await sgMail.send({ ...msg, to: email });
-    res.status(200).end();
+    res.status(204).end();
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Could not send the email." });
