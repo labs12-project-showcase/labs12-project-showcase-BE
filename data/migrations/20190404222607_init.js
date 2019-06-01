@@ -153,8 +153,8 @@ exports.up = function(knex, Promise) {
       tbl.string("name");
       tbl.string("github");
       tbl.string("website");
-      tbl.text("tech_pitch");
-      tbl.text("customer_pitch");
+      // tbl.text("tech_pitch");
+      // tbl.text("customer_pitch");
       tbl.string("medium");
       tbl.string("fe_link");
       tbl.string("be_link");
